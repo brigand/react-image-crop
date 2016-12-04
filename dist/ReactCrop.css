@@ -29,6 +29,7 @@
   background-color: rgba(0, 0, 0, 0.6); }
 
 .ReactCrop--crop-selection {
+  pointer-events: none;
   position: absolute;
   top: 0;
   left: 0;

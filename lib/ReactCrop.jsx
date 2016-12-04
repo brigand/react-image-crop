@@ -64,10 +64,16 @@ class ReactCrop extends Component {
     this.onComponentMouseTouchDown = this.onComponentMouseTouchDown.bind(this);
     this.onComponentKeyDown = this.onComponentKeyDown.bind(this);
     this.onCropMouseTouchDown = this.onCropMouseTouchDown.bind(this);
+    this.onWheel = this.onWheel.bind(this);
+    this.onMouseOver = this.onMouseOver.bind(this);
+    this.onMouseOut = this.onMouseOut.bind(this);
+    this.onWindowScroll = this.onWindowScroll.bind(this);
+
 
     this.state = {
       crop: this.nextCropState(props.crop),
       polygonId: this.getRandomInt(1, 900000),
+      zoom: 1,
     };
   }
 
@@ -121,6 +127,8 @@ class ReactCrop extends Component {
     document.removeEventListener('mouseup', this.onDocMouseTouchEnd);
     document.removeEventListener('touchend', this.onDocMouseTouchEnd);
     document.removeEventListener('touchcancel', this.onDocMouseTouchEnd);
+
+    window.removeEventListener('scroll', this.onWindowScroll, false);
   }
 
   onDocMouseTouchMove(e) {
@@ -599,8 +607,51 @@ class ReactCrop extends Component {
     }
   }
 
+  onWheel(event) {
+    event.preventDefault();
+    const speed = 0.005;
+    let delta = speed;
+    if (event.deltaMode === 0) {
+      delta = event.deltaY * speed;
+    }
+
+    // don't zoom out past 1
+    const zoom = this.state.zoom + delta < 1
+      ? 1
+      : this.state.zoom + delta
+
+    if (this.state.zoom !== zoom) {
+      this.setState({zoom}, () => {
+        this.drawOnCanvas();
+      });
+    }
+  }
+
+  onMouseOver(event) {
+    window.addEventListener('scroll', this.onWindowScroll, false);
+  }
+
+  onMouseOut(event) {
+    window.removeEventListener('scroll', this.onWindowScroll, false);
+  }
+
+  // this only runs when the mouse is over the canvas
+  onWindowScroll(event) {
+    event.preventDefault();
+  }
+
   drawOnCanvas() {
-    var ctx = this.imageCanvasRef.getContext('2d');
+    const img = this.imageRef;
+    const {naturalWidth, naturalHeight} = img;
+    const ctx = this.imageCanvasRef.getContext('2d');
+
+    const width = naturalWidth * this.state.zoom;
+    const height = naturalHeight * this.state.zoom;
+
+    ctx.save();
+    ctx.scale(this.state.zoom, this.state.zoom);
+    // ctx.translate(-(width/2), -(height/2));
+    console.log('scaled to ' + this.state.zoom)
     ctx.drawImage(
       this.imageRef,
       0,
@@ -608,6 +659,7 @@ class ReactCrop extends Component {
       this.imageCanvasRef.width,
       this.imageCanvasRef.height,
     );
+    ctx.restore();
   }
 
   arrayDividedBy100(arr, delimeter = ' ') {
@@ -812,6 +864,9 @@ class ReactCrop extends Component {
             ref={(c) => {
               this.imageCanvasRef = c;
             }}
+            onWheel={this.onWheel}
+            onMouseOver={this.onMouseOver}
+            onMouseOut={this.onMouseOut}
             className="ReactCrop--image-copy"
             style={imageClip}
           />

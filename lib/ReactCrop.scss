@@ -52,6 +52,7 @@ $drag-bar-mobile-size: $drag-bar-size + 8;
 }
 
 .ReactCrop--crop-selection {
+  pointer-events: none;
   position: absolute;
   top: 0;
   left: 0;
