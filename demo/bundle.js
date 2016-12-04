@@ -21771,7 +21771,7 @@
 	  }, {
 	    key: 'onComponentMouseTouchDown',
 	    value: function onComponentMouseTouchDown(e) {
-	      if (e.target !== this.imageCopyRef && e.target !== this.cropWrapperRef) {
+	      if (e.target !== this.imageCanvasRef && e.target !== this.cropWrapperRef) {
 	        return;
 	      }
 
@@ -22174,6 +22174,10 @@
 	    value: function onImageLoad(imageEl) {
 	      var crop = this.state.crop;
 
+	      this.imageCanvasRef.width = imageEl.naturalWidth;
+	      this.imageCanvasRef.height = imageEl.naturalHeight;
+	      this.drawOnCanvas();
+
 	      // If there is a width or height then infer the other to
 	      // ensure the value is correct.
 	      if (crop.aspect) {
@@ -22184,6 +22188,12 @@
 	      if (this.props.onImageLoaded) {
 	        this.props.onImageLoaded(crop, imageEl, this.getPixelCrop(crop));
 	      }
+	    }
+	  }, {
+	    key: 'drawOnCanvas',
+	    value: function drawOnCanvas() {
+	      var ctx = this.imageCanvasRef.getContext('2d');
+	      ctx.drawImage(this.imageRef, 0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
 	    }
 	  }, {
 	    key: 'arrayDividedBy100',
@@ -22404,15 +22414,14 @@
 	              _this5.cropWrapperRef = c;
 	            }
 	          },
-	          _react2.default.createElement('img', {
+	          _react2.default.createElement('canvas', {
+	            width: '1',
+	            height: '1',
 	            ref: function ref(c) {
-	              _this5.imageCopyRef = c;
+	              _this5.imageCanvasRef = c;
 	            },
-	            crossOrigin: isDataUrl ? undefined : this.props.crossorigin,
 	            className: 'ReactCrop--image-copy',
-	            src: this.props.src,
-	            style: imageClip,
-	            alt: ''
+	            style: imageClip
 	          }),
 	          cropSelection
 	        ),

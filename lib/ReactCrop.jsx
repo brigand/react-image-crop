@@ -98,7 +98,7 @@ class ReactCrop extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.crop) {
       let nextCrop = this.nextCropState(nextProps.crop);
-      const aspectRatioChanged = 
+      const aspectRatioChanged =
         this.state.crop.aspect && nextCrop.aspect !== this.state.crop.aspect;
 
       if (nextCrop.aspect) {
@@ -210,7 +210,7 @@ class ReactCrop extends Component {
   }
 
   onComponentMouseTouchDown(e) {
-    if (e.target !== this.imageCopyRef && e.target !== this.cropWrapperRef) {
+    if (e.target !== this.imageCanvasRef && e.target !== this.cropWrapperRef) {
       return;
     }
 
@@ -583,6 +583,10 @@ class ReactCrop extends Component {
   onImageLoad(imageEl) {
     let crop = this.state.crop;
 
+    this.imageCanvasRef.width = imageEl.naturalWidth;
+    this.imageCanvasRef.height = imageEl.naturalHeight;
+    this.drawOnCanvas();
+
     // If there is a width or height then infer the other to
     // ensure the value is correct.
     if (crop.aspect) {
@@ -593,6 +597,17 @@ class ReactCrop extends Component {
     if (this.props.onImageLoaded) {
       this.props.onImageLoaded(crop, imageEl, this.getPixelCrop(crop));
     }
+  }
+
+  drawOnCanvas() {
+    var ctx = this.imageCanvasRef.getContext('2d');
+    ctx.drawImage(
+      this.imageRef,
+      0,
+      0,
+      this.imageCanvasRef.width,
+      this.imageCanvasRef.height,
+    );
   }
 
   arrayDividedBy100(arr, delimeter = ' ') {
@@ -791,15 +806,14 @@ class ReactCrop extends Component {
             this.cropWrapperRef = c;
           }}
         >
-          <img
+          <canvas
+            width="1"
+            height="1"
             ref={(c) => {
-              this.imageCopyRef = c;
+              this.imageCanvasRef = c;
             }}
-            crossOrigin={isDataUrl ? undefined : this.props.crossorigin}
             className="ReactCrop--image-copy"
-            src={this.props.src}
             style={imageClip}
-            alt=""
           />
           {cropSelection}
         </div>
