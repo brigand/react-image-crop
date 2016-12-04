@@ -7,7 +7,7 @@ import ReactCrop from '../lib/ReactCrop';
  */
 const cropEditor = document.querySelector('#crop-editor');
 
-function loadEditView(dataUrl) {
+function loadEditView(url) {
   class Parent extends Component {
     constructor() {
       super();
@@ -53,16 +53,14 @@ function loadEditView(dataUrl) {
 
     render() {
       return (
-        <div>
+        <div style={{width: '30em', margin: '10em auto'}}>
           <ReactCrop
             {...this.state}
-            src={dataUrl}
+            src={url}
             onImageLoaded={(crop) => this.onImageLoaded(crop)}
             onComplete={(crop) => this.onCropComplete(crop)}
             // onChange={this.onCropChange}
           />
-          <button onClick={this.onButtonClick}>Programatically set crop</button>
-          <button onClick={() => { this.setState({ foo: Date.now() }); }}>Change foo state</button>
         </div>
       );
     }
@@ -74,21 +72,5 @@ function loadEditView(dataUrl) {
 /**
  * Select an image file.
  */
-const imageType = /^image\//;
-const fileInput = document.querySelector('#file-picker');
 
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files.item(0);
-
-  if (!file || !imageType.test(file.type)) {
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = (e2) => {
-    loadEditView(e2.target.result);
-  };
-
-  reader.readAsDataURL(file);
-});
+loadEditView('https://c7.staticflickr.com/6/5630/30569330894_9e5f7feeb1_n.jpg');
