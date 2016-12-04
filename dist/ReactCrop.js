@@ -82,10 +82,15 @@ module.exports =
 	    _this.onComponentMouseTouchDown = _this.onComponentMouseTouchDown.bind(_this);
 	    _this.onComponentKeyDown = _this.onComponentKeyDown.bind(_this);
 	    _this.onCropMouseTouchDown = _this.onCropMouseTouchDown.bind(_this);
+	    _this.onWheel = _this.onWheel.bind(_this);
+	    _this.onMouseOver = _this.onMouseOver.bind(_this);
+	    _this.onMouseOut = _this.onMouseOut.bind(_this);
+	    _this.onWindowScroll = _this.onWindowScroll.bind(_this);
 
 	    _this.state = {
 	      crop: _this.nextCropState(props.crop),
-	      polygonId: _this.getRandomInt(1, 900000)
+	      polygonId: _this.getRandomInt(1, 900000),
+	      zoom: 1
 	    };
 	    return _this;
 	  }
@@ -147,6 +152,8 @@ module.exports =
 	      document.removeEventListener('mouseup', this.onDocMouseTouchEnd);
 	      document.removeEventListener('touchend', this.onDocMouseTouchEnd);
 	      document.removeEventListener('touchcancel', this.onDocMouseTouchEnd);
+
+	      window.removeEventListener('scroll', this.onWindowScroll, false);
 	    }
 	  }, {
 	    key: 'onDocMouseTouchMove',
@@ -241,7 +248,7 @@ module.exports =
 	  }, {
 	    key: 'onComponentMouseTouchDown',
 	    value: function onComponentMouseTouchDown(e) {
-	      if (e.target !== this.imageCopyRef && e.target !== this.cropWrapperRef) {
+	      if (e.target !== this.imageCanvasRef && e.target !== this.cropWrapperRef) {
 	        return;
 	      }
 
@@ -644,6 +651,10 @@ module.exports =
 	    value: function onImageLoad(imageEl) {
 	      var crop = this.state.crop;
 
+	      this.imageCanvasRef.width = imageEl.naturalWidth;
+	      this.imageCanvasRef.height = imageEl.naturalHeight;
+	      this.drawOnCanvas();
+
 	      // If there is a width or height then infer the other to
 	      // ensure the value is correct.
 	      if (crop.aspect) {
@@ -654,6 +665,64 @@ module.exports =
 	      if (this.props.onImageLoaded) {
 	        this.props.onImageLoaded(crop, imageEl, this.getPixelCrop(crop));
 	      }
+	    }
+	  }, {
+	    key: 'onWheel',
+	    value: function onWheel(event) {
+	      var _this4 = this;
+
+	      event.preventDefault();
+	      var speed = 0.005;
+	      var delta = speed;
+	      if (event.deltaMode === 0) {
+	        delta = event.deltaY * speed;
+	      }
+
+	      // don't zoom out past 1
+	      var zoom = this.state.zoom + delta < 1 ? 1 : this.state.zoom + delta;
+
+	      if (this.state.zoom !== zoom) {
+	        this.setState({ zoom: zoom }, function () {
+	          _this4.drawOnCanvas();
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'onMouseOver',
+	    value: function onMouseOver(event) {
+	      window.addEventListener('scroll', this.onWindowScroll, false);
+	    }
+	  }, {
+	    key: 'onMouseOut',
+	    value: function onMouseOut(event) {
+	      window.removeEventListener('scroll', this.onWindowScroll, false);
+	    }
+
+	    // this only runs when the mouse is over the canvas
+
+	  }, {
+	    key: 'onWindowScroll',
+	    value: function onWindowScroll(event) {
+	      event.preventDefault();
+	    }
+	  }, {
+	    key: 'drawOnCanvas',
+	    value: function drawOnCanvas() {
+	      var img = this.imageRef;
+	      var naturalWidth = img.naturalWidth,
+	          naturalHeight = img.naturalHeight;
+
+	      var ctx = this.imageCanvasRef.getContext('2d');
+
+	      var width = naturalWidth * this.state.zoom;
+	      var height = naturalHeight * this.state.zoom;
+
+	      ctx.save();
+	      ctx.scale(this.state.zoom, this.state.zoom);
+	      // ctx.translate(-(width/2), -(height/2));
+	      console.log('scaled to ' + this.state.zoom);
+	      ctx.drawImage(this.imageRef, 0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
+	      ctx.restore();
 	    }
 	  }, {
 	    key: 'arrayDividedBy100',
@@ -676,7 +745,7 @@ module.exports =
 	  }, {
 	    key: 'createCropSelection',
 	    value: function createCropSelection() {
-	      var _this4 = this;
+	      var _this5 = this;
 
 	      var style = this.getCropStyle();
 	      var aspect = this.state.crop.aspect;
@@ -687,7 +756,7 @@ module.exports =
 	        'div',
 	        {
 	          ref: function ref(c) {
-	            _this4.cropSelectRef = c;
+	            _this5.cropSelectRef = c;
 	          },
 	          style: style,
 	          className: 'ReactCrop--crop-selection',
@@ -812,7 +881,7 @@ module.exports =
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var _this5 = this;
+	      var _this6 = this;
 
 	      var cropSelection = void 0;
 	      var imageClip = void 0;
@@ -845,7 +914,7 @@ module.exports =
 	        'div',
 	        {
 	          ref: function ref(c) {
-	            _this5.componentRef = c;
+	            _this6.componentRef = c;
 	          },
 	          className: componentClasses.join(' '),
 	          onTouchStart: this.onComponentMouseTouchDown,
@@ -856,13 +925,13 @@ module.exports =
 	        this.renderSvg(),
 	        _react2.default.createElement('img', {
 	          ref: function ref(c) {
-	            _this5.imageRef = c;
+	            _this6.imageRef = c;
 	          },
 	          crossOrigin: isDataUrl ? undefined : this.props.crossorigin,
 	          className: 'ReactCrop--image',
 	          src: this.props.src,
 	          onLoad: function onLoad(e) {
-	            return _this5.onImageLoad(e.target);
+	            return _this6.onImageLoad(e.target);
 	          },
 	          alt: ''
 	        }),
@@ -871,18 +940,20 @@ module.exports =
 	          {
 	            className: 'ReactCrop--crop-wrapper',
 	            ref: function ref(c) {
-	              _this5.cropWrapperRef = c;
+	              _this6.cropWrapperRef = c;
 	            }
 	          },
-	          _react2.default.createElement('img', {
+	          _react2.default.createElement('canvas', {
+	            width: '1',
+	            height: '1',
 	            ref: function ref(c) {
-	              _this5.imageCopyRef = c;
+	              _this6.imageCanvasRef = c;
 	            },
-	            crossOrigin: isDataUrl ? undefined : this.props.crossorigin,
+	            onWheel: this.onWheel,
+	            onMouseOver: this.onMouseOver,
+	            onMouseOut: this.onMouseOut,
 	            className: 'ReactCrop--image-copy',
-	            src: this.props.src,
-	            style: imageClip,
-	            alt: ''
+	            style: imageClip
 	          }),
 	          cropSelection
 	        ),
