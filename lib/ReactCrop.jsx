@@ -609,7 +609,7 @@ class ReactCrop extends Component {
 
   onWheel(event) {
     event.preventDefault();
-    const speed = 0.005;
+    const speed = -0.005;
     let delta = speed;
     if (event.deltaMode === 0) {
       delta = event.deltaY * speed;
@@ -642,15 +642,21 @@ class ReactCrop extends Component {
 
   drawOnCanvas() {
     const img = this.imageRef;
+    const {zoom} = this.state;
     const {naturalWidth, naturalHeight} = img;
     const ctx = this.imageCanvasRef.getContext('2d');
 
     const width = naturalWidth * this.state.zoom;
     const height = naturalHeight * this.state.zoom;
+    const xOffset = width / 2;
+    const yOffset = height / 2;
 
+    ctx.clearRect(0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
     ctx.save();
-    ctx.scale(this.state.zoom, this.state.zoom);
-    // ctx.translate(-(width/2), -(height/2));
+    // ctx.translate(xOffset, yOffset);
+    ctx.scale(zoom, zoom);
+
+
     console.log('scaled to ' + this.state.zoom)
     ctx.drawImage(
       this.imageRef,
