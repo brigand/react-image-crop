@@ -166,7 +166,12 @@ class ReactCrop extends Component {
 
     const zoomedCrop = this.zoomCrop(crop);
     if (this.props.onChange) {
-      this.props.onChange(zoomedCrop, this.getPixelCrop(zoomedCrop));
+      this.props.onChange(
+        crop,
+        this.getPixelCrop(crop),
+        zoomedCrop,
+        this.getPixelCrop(zoomedCrop),
+      );
     }
 
     this.setState({ crop });
@@ -302,7 +307,12 @@ class ReactCrop extends Component {
       this.setState({ crop }, () => {
         const zoomedCrop = this.zoomCrop(crop);
         if (this.props.onChange) {
-          this.props.onChange(zoomedCrop, this.getPixelCrop(zoomedCrop));
+          this.props.onChange(
+            crop,
+            this.getPixelCrop(crop),
+            zoomedCrop,
+            this.getPixelCrop(zoomedCrop),
+          );
         }
         if (this.props.onComplete) {
           this.props.onComplete(zoomedCrop, this.getPixelCrop(zoomedCrop));

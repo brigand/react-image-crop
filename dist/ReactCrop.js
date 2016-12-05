@@ -193,7 +193,7 @@ module.exports =
 
 	      var zoomedCrop = this.zoomCrop(crop);
 	      if (this.props.onChange) {
-	        this.props.onChange(zoomedCrop, this.getPixelCrop(zoomedCrop));
+	        this.props.onChange(crop, this.getPixelCrop(crop), zoomedCrop, this.getPixelCrop(zoomedCrop));
 	      }
 
 	      this.setState({ crop: crop });
@@ -336,7 +336,7 @@ module.exports =
 	        this.setState({ crop: crop }, function () {
 	          var zoomedCrop = _this3.zoomCrop(crop);
 	          if (_this3.props.onChange) {
-	            _this3.props.onChange(zoomedCrop, _this3.getPixelCrop(zoomedCrop));
+	            _this3.props.onChange(crop, _this3.getPixelCrop(crop), zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	          if (_this3.props.onComplete) {
 	            _this3.props.onComplete(zoomedCrop, _this3.getPixelCrop(zoomedCrop));
