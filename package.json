@@ -1,6 +1,6 @@
 {
   "name": "react-image-crop",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "A responsive image cropping tool for React",
   "repository": "https://github.com/DominicTobias/react-image-crop",
   "main": "index.js",
