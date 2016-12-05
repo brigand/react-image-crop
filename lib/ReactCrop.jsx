@@ -315,7 +315,12 @@ class ReactCrop extends Component {
           );
         }
         if (this.props.onComplete) {
-          this.props.onComplete(zoomedCrop, this.getPixelCrop(zoomedCrop));
+          this.props.onComplete(
+            crop,
+            this.getPixelCrop(crop),
+            zoomedCrop,
+            this.getPixelCrop(zoomedCrop),
+          );
         }
       });
     }

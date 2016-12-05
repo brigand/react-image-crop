@@ -21869,7 +21869,7 @@
 	            _this3.props.onChange(crop, _this3.getPixelCrop(crop), zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	          if (_this3.props.onComplete) {
-	            _this3.props.onComplete(zoomedCrop, _this3.getPixelCrop(zoomedCrop));
+	            _this3.props.onComplete(crop, _this3.getPixelCrop(crop), zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	        });
 	      }
