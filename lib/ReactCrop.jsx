@@ -164,8 +164,9 @@ class ReactCrop extends Component {
 
     this.cropInvalid = false;
 
+    const zoomedCrop = this.zoomCrop(crop);
     if (this.props.onChange) {
-      this.props.onChange(crop, this.getPixelCrop(crop));
+      this.props.onChange(zoomedCrop, this.getPixelCrop(zoomedCrop));
     }
 
     this.setState({ crop });
@@ -299,11 +300,12 @@ class ReactCrop extends Component {
       crop.y = this.clamp(crop.y, 0, 100 - crop.height);
 
       this.setState({ crop }, () => {
+        const zoomedCrop = this.zoomCrop(crop);
         if (this.props.onChange) {
-          this.props.onChange(crop, this.getPixelCrop(crop));
+          this.props.onChange(zoomedCrop, this.getPixelCrop(zoomedCrop));
         }
         if (this.props.onComplete) {
-          this.props.onComplete(crop, this.getPixelCrop(crop));
+          this.props.onComplete(zoomedCrop, this.getPixelCrop(zoomedCrop));
         }
       });
     }
@@ -638,6 +640,21 @@ class ReactCrop extends Component {
   // this only runs when the mouse is over the canvas
   onWindowScroll(event) {
     event.preventDefault();
+  }
+
+  zoomCrop(crop) {
+    const {zoom} = this.state;
+    const image = this.imageRef;
+    const {naturalWidth, naturalHeight} = image;
+    const percent = 1/zoom;
+
+    const x = (naturalWidth/2 - crop.x) / zoom + crop.x;
+    const y = (naturalHeight/2 - crop.y) / zoom + crop.y;
+    const width = crop.width / zoom;
+    const height = crop.height / zoom;
+    const aspect = crop.aspect;
+
+    return {x, y, width, height, aspect};
   }
 
   drawOnCanvas() {

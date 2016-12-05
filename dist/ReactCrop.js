@@ -191,8 +191,9 @@ module.exports =
 
 	      this.cropInvalid = false;
 
+	      var zoomedCrop = this.zoomCrop(crop);
 	      if (this.props.onChange) {
-	        this.props.onChange(crop, this.getPixelCrop(crop));
+	        this.props.onChange(zoomedCrop, this.getPixelCrop(zoomedCrop));
 	      }
 
 	      this.setState({ crop: crop });
@@ -333,11 +334,12 @@ module.exports =
 	        crop.y = this.clamp(crop.y, 0, 100 - crop.height);
 
 	        this.setState({ crop: crop }, function () {
+	          var zoomedCrop = _this3.zoomCrop(crop);
 	          if (_this3.props.onChange) {
-	            _this3.props.onChange(crop, _this3.getPixelCrop(crop));
+	            _this3.props.onChange(zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	          if (_this3.props.onComplete) {
-	            _this3.props.onComplete(crop, _this3.getPixelCrop(crop));
+	            _this3.props.onComplete(zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	        });
 	      }
@@ -704,6 +706,25 @@ module.exports =
 	    key: 'onWindowScroll',
 	    value: function onWindowScroll(event) {
 	      event.preventDefault();
+	    }
+	  }, {
+	    key: 'zoomCrop',
+	    value: function zoomCrop(crop) {
+	      var zoom = this.state.zoom;
+
+	      var image = this.imageRef;
+	      var naturalWidth = image.naturalWidth,
+	          naturalHeight = image.naturalHeight;
+
+	      var percent = 1 / zoom;
+
+	      var x = (naturalWidth / 2 - crop.x) / zoom + crop.x;
+	      var y = (naturalHeight / 2 - crop.y) / zoom + crop.y;
+	      var width = crop.width / zoom;
+	      var height = crop.height / zoom;
+	      var aspect = crop.aspect;
+
+	      return { x: x, y: y, width: width, height: height, aspect: aspect };
 	    }
 	  }, {
 	    key: 'drawOnCanvas',

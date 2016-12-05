@@ -89,41 +89,35 @@
 	        crop: {
 	          x: 0,
 	          y: 0
-	        },
-	        maxHeight: 80
+	        }
 	      };
+
+	      _this.image = new Image();
+	      _this.image.src = url;
 	      return _this;
 	    }
 
 	    _createClass(Parent, [{
-	      key: 'onButtonClick',
-	      value: function onButtonClick() {
-	        this.setState({
-	          crop: {
-	            x: 20,
-	            y: 5,
-	            aspect: 1,
-	            width: 30,
-	            height: 50
-	          }
-	        });
+	      key: 'onCropChange',
+	      value: function onCropChange(crop) {
+	        console.debug(crop);
 	      }
 	    }, {
 	      key: 'onImageLoaded',
 	      value: function onImageLoaded(crop) {
 	        console.log('Image was loaded. Crop:', crop);
-	        // this.setState({
-	        //  crop: {
-	        //    aspect: 16/9,
-	        //    width: 30,
-	        //  }
-	        // });
 	      }
 	    }, {
 	      key: 'onCropComplete',
 	      value: function onCropComplete(crop) {
 	        console.log('Crop move complete:', crop);
 	        this.setState({ hello: Date.now(), crop: crop });
+
+	        var canvas = this.refs.canvas;
+	        canvas.width = crop.width;
+	        canvas.height = crop.height;
+	        var ctx = canvas.getContext('2d');
+	        ctx.drawImage(this.image, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
 	      }
 
 	      // onCropChange: function(crop) {
@@ -147,7 +141,13 @@
 	              return _this2.onCropComplete(crop);
 	            }
 	            // onChange={this.onCropChange}
-	          }))
+	          })),
+	          _react2.default.createElement(
+	            'pre',
+	            null,
+	            JSON.stringify(this.crop, null, 2)
+	          ),
+	          _react2.default.createElement('canvas', { width: '100', height: '100', ref: 'canvas', style: { boder: '10px solid red' } })
 	        );
 	      }
 	    }]);
@@ -21721,8 +21721,9 @@
 
 	      this.cropInvalid = false;
 
+	      var zoomedCrop = this.zoomCrop(crop);
 	      if (this.props.onChange) {
-	        this.props.onChange(crop, this.getPixelCrop(crop));
+	        this.props.onChange(zoomedCrop, this.getPixelCrop(zoomedCrop));
 	      }
 
 	      this.setState({ crop: crop });
@@ -21863,11 +21864,12 @@
 	        crop.y = this.clamp(crop.y, 0, 100 - crop.height);
 
 	        this.setState({ crop: crop }, function () {
+	          var zoomedCrop = _this3.zoomCrop(crop);
 	          if (_this3.props.onChange) {
-	            _this3.props.onChange(crop, _this3.getPixelCrop(crop));
+	            _this3.props.onChange(zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	          if (_this3.props.onComplete) {
-	            _this3.props.onComplete(crop, _this3.getPixelCrop(crop));
+	            _this3.props.onComplete(zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	        });
 	      }
@@ -22234,6 +22236,25 @@
 	    key: 'onWindowScroll',
 	    value: function onWindowScroll(event) {
 	      event.preventDefault();
+	    }
+	  }, {
+	    key: 'zoomCrop',
+	    value: function zoomCrop(crop) {
+	      var zoom = this.state.zoom;
+
+	      var image = this.imageRef;
+	      var naturalWidth = image.naturalWidth,
+	          naturalHeight = image.naturalHeight;
+
+	      var percent = 1 / zoom;
+
+	      var x = (naturalWidth / 2 - crop.x) / zoom + crop.x;
+	      var y = (naturalHeight / 2 - crop.y) / zoom + crop.y;
+	      var width = crop.width / zoom;
+	      var height = crop.height / zoom;
+	      var aspect = crop.aspect;
+
+	      return { x: x, y: y, width: width, height: height, aspect: aspect };
 	    }
 	  }, {
 	    key: 'drawOnCanvas',

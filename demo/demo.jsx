@@ -16,35 +16,39 @@ function loadEditView(url) {
           x: 0,
           y: 0,
         },
-        maxHeight: 80,
       };
+
+      this.image = new Image();
+      this.image.src = url;
     }
 
-    onButtonClick() {
-      this.setState({
-        crop: {
-          x: 20,
-          y: 5,
-          aspect: 1,
-          width: 30,
-          height: 50,
-        },
-      });
+    onCropChange(crop) {
+      console.debug(crop);
     }
 
     onImageLoaded(crop) {
       console.log('Image was loaded. Crop:', crop);
-      // this.setState({
-      //  crop: {
-      //    aspect: 16/9,
-      //    width: 30,
-      //  }
-      // });
     }
 
     onCropComplete(crop) {
       console.log('Crop move complete:', crop);
       this.setState({ hello: Date.now(), crop });
+
+      var canvas = this.refs.canvas;
+      canvas.width = crop.width;
+      canvas.height = crop.height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(
+        this.image,
+        crop.x,
+        crop.y,
+        crop.width,
+        crop.height,
+        0,
+        0,
+        crop.width,
+        crop.height,
+      );
     }
 
     // onCropChange: function(crop) {
@@ -61,6 +65,8 @@ function loadEditView(url) {
             onComplete={(crop) => this.onCropComplete(crop)}
             // onChange={this.onCropChange}
           />
+          <pre>{JSON.stringify(this.crop, null, 2)}</pre>
+          <canvas width="100" height="100" ref="canvas" style={{boder: '10px solid red'}}></canvas>
         </div>
       );
     }
