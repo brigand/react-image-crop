@@ -643,6 +643,7 @@ class ReactCrop extends Component {
   }
 
   zoomCrop(crop) {
+    return crop;
     const {zoom} = this.state;
     const image = this.imageRef;
     const {naturalWidth, naturalHeight} = image;

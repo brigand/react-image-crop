@@ -22240,6 +22240,7 @@
 	  }, {
 	    key: 'zoomCrop',
 	    value: function zoomCrop(crop) {
+	      return crop;
 	      var zoom = this.state.zoom;
 
 	      var image = this.imageRef;
