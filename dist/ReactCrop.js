@@ -672,7 +672,7 @@ module.exports =
 	      var _this4 = this;
 
 	      event.preventDefault();
-	      var speed = 0.005;
+	      var speed = -0.005;
 	      var delta = speed;
 	      if (event.deltaMode === 0) {
 	        delta = event.deltaY * speed;
@@ -709,19 +709,23 @@ module.exports =
 	    key: 'drawOnCanvas',
 	    value: function drawOnCanvas() {
 	      var img = this.imageRef;
+	      var zoom = this.state.zoom;
 	      var naturalWidth = img.naturalWidth,
 	          naturalHeight = img.naturalHeight;
 
 	      var ctx = this.imageCanvasRef.getContext('2d');
 
-	      var width = naturalWidth * this.state.zoom;
-	      var height = naturalHeight * this.state.zoom;
+	      var width = naturalWidth;
+	      var height = naturalHeight;
+	      var xOffset = width / 2;
+	      var yOffset = height / 2;
 
+	      ctx.clearRect(0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
 	      ctx.save();
-	      ctx.scale(this.state.zoom, this.state.zoom);
-	      // ctx.translate(-(width/2), -(height/2));
-	      console.log('scaled to ' + this.state.zoom);
-	      ctx.drawImage(this.imageRef, 0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
+	      ctx.translate(xOffset, yOffset);
+	      ctx.scale(zoom, zoom);
+
+	      ctx.drawImage(this.imageRef, -xOffset, -yOffset, this.imageCanvasRef.width, this.imageCanvasRef.height);
 	      ctx.restore();
 	    }
 	  }, {

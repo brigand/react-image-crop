@@ -646,22 +646,20 @@ class ReactCrop extends Component {
     const {naturalWidth, naturalHeight} = img;
     const ctx = this.imageCanvasRef.getContext('2d');
 
-    const width = naturalWidth * this.state.zoom;
-    const height = naturalHeight * this.state.zoom;
+    const width = naturalWidth;
+    const height = naturalHeight;
     const xOffset = width / 2;
     const yOffset = height / 2;
 
     ctx.clearRect(0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
     ctx.save();
-    // ctx.translate(xOffset, yOffset);
+    ctx.translate(xOffset, yOffset);
     ctx.scale(zoom, zoom);
 
-
-    console.log('scaled to ' + this.state.zoom)
     ctx.drawImage(
       this.imageRef,
-      0,
-      0,
+      -xOffset,
+      -yOffset,
       this.imageCanvasRef.width,
       this.imageCanvasRef.height,
     );

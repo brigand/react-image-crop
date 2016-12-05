@@ -22245,18 +22245,17 @@
 
 	      var ctx = this.imageCanvasRef.getContext('2d');
 
-	      var width = naturalWidth * this.state.zoom;
-	      var height = naturalHeight * this.state.zoom;
+	      var width = naturalWidth;
+	      var height = naturalHeight;
 	      var xOffset = width / 2;
 	      var yOffset = height / 2;
 
 	      ctx.clearRect(0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
 	      ctx.save();
-	      // ctx.translate(xOffset, yOffset);
+	      ctx.translate(xOffset, yOffset);
 	      ctx.scale(zoom, zoom);
 
-	      console.log('scaled to ' + this.state.zoom);
-	      ctx.drawImage(this.imageRef, 0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
+	      ctx.drawImage(this.imageRef, -xOffset, -yOffset, this.imageCanvasRef.width, this.imageCanvasRef.height);
 	      ctx.restore();
 	    }
 	  }, {
