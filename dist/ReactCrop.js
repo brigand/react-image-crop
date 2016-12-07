@@ -358,7 +358,8 @@ module.exports =
 	        this.mouseDownOnCrop = false;
 
 	        if (this.props.onComplete) {
-	          this.props.onComplete(crop, this.getPixelCrop(crop));
+	          var zoomedCrop = this.zoomCrop(crop);
+	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop, this.getPixelCrop(zoomedCrop));
 	        }
 
 	        this.setState({ newCropIsBeingDrawn: false });
@@ -710,7 +711,6 @@ module.exports =
 	  }, {
 	    key: 'zoomCrop',
 	    value: function zoomCrop(crop) {
-	      return crop;
 	      var zoom = this.state.zoom;
 
 	      var image = this.imageRef;
@@ -719,8 +719,10 @@ module.exports =
 
 	      var percent = 1 / zoom;
 
-	      var x = (naturalWidth / 2 - crop.x) / zoom + crop.x;
-	      var y = (naturalHeight / 2 - crop.y) / zoom + crop.y;
+	      // const x = (naturalWidth/2 - crop.x) / zoom + crop.x;
+	      // const y = (naturalHeight/2 - crop.y) / zoom + crop.y;
+	      var x = crop.x / zoom;
+	      var y = crop.y / zoom;
 	      var width = crop.width / zoom;
 	      var height = crop.height / zoom;
 	      var aspect = crop.aspect;

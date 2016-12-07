@@ -337,7 +337,13 @@ class ReactCrop extends Component {
       this.mouseDownOnCrop = false;
 
       if (this.props.onComplete) {
-        this.props.onComplete(crop, this.getPixelCrop(crop));
+        const zoomedCrop = this.zoomCrop(crop);
+        this.props.onComplete(
+          crop,
+          this.getPixelCrop(crop),
+          zoomedCrop,
+          this.getPixelCrop(zoomedCrop),
+        );
       }
 
       this.setState({ newCropIsBeingDrawn: false });
@@ -658,14 +664,15 @@ class ReactCrop extends Component {
   }
 
   zoomCrop(crop) {
-    return crop;
     const {zoom} = this.state;
     const image = this.imageRef;
     const {naturalWidth, naturalHeight} = image;
     const percent = 1/zoom;
 
-    const x = (naturalWidth/2 - crop.x) / zoom + crop.x;
-    const y = (naturalHeight/2 - crop.y) / zoom + crop.y;
+    // const x = (naturalWidth/2 - crop.x) / zoom + crop.x;
+    // const y = (naturalHeight/2 - crop.y) / zoom + crop.y;
+    const x = crop.x / zoom;
+    const y = crop.y / zoom;
     const width = crop.width / zoom;
     const height = crop.height / zoom;
     const aspect = crop.aspect;
