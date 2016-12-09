@@ -983,6 +983,7 @@ module.exports =
 	            },
 	            className: 'ReactCrop--image-copy'
 	          }),
+	          _react2.default.createElement('div', { className: 'ReactCrop--background' }),
 	          _react2.default.createElement('canvas', {
 	            width: '1',
 	            height: '1',

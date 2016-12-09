@@ -915,6 +915,7 @@ class ReactCrop extends Component {
             }}
             className="ReactCrop--image-copy"
           />
+        <div className="ReactCrop--background" />
           <canvas
             width="1"
             height="1"
