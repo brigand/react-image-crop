@@ -22249,10 +22249,10 @@
 
 	      var percent = 1 / zoom;
 
-	      // const x = (naturalWidth/2 - crop.x) / zoom + crop.x;
-	      // const y = (naturalHeight/2 - crop.y) / zoom + crop.y;
-	      var x = crop.x / zoom;
-	      var y = crop.y / zoom;
+	      var dx = crop.x / zoom;
+	      var dy = crop.y / zoom;
+	      var x = crop.x + dx * zoom - dx;
+	      var y = crop.y + dy * zoom - dy;
 	      var width = crop.width / zoom;
 	      var height = crop.height / zoom;
 	      var aspect = crop.aspect;

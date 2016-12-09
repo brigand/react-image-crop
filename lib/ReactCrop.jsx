@@ -669,10 +669,10 @@ class ReactCrop extends Component {
     const {naturalWidth, naturalHeight} = image;
     const percent = 1/zoom;
 
-    // const x = (naturalWidth/2 - crop.x) / zoom + crop.x;
-    // const y = (naturalHeight/2 - crop.y) / zoom + crop.y;
-    const x = crop.x / zoom;
-    const y = crop.y / zoom;
+    const dx = crop.x / zoom;
+    const dy = crop.y / zoom;
+    const x = crop.x + (dx * zoom) - dx;
+    const y = crop.y + (dy * zoom) - dy;
     const width = crop.width / zoom;
     const height = crop.height / zoom;
     const aspect = crop.aspect;
@@ -695,6 +695,7 @@ class ReactCrop extends Component {
     ctx.save();
     ctx.translate(xOffset, yOffset);
     ctx.scale(zoom, zoom);
+
 
     ctx.drawImage(
       this.imageRef,
