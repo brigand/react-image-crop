@@ -616,7 +616,10 @@ class ReactCrop extends Component {
 
     this.imageCanvasRef.width = imageEl.naturalWidth;
     this.imageCanvasRef.height = imageEl.naturalHeight;
-    this.drawOnCanvas();
+    this.imageCanvasRefBackground.width = imageEl.naturalWidth;
+    this.imageCanvasRefBackground.height = imageEl.naturalHeight;
+    this.drawOnCanvas(this.imageCanvasRef);
+    this.drawOnCanvas(this.imageCanvasRefBackground);
 
     // If there is a width or height then infer the other to
     // ensure the value is correct.
@@ -645,7 +648,8 @@ class ReactCrop extends Component {
 
     if (this.state.zoom !== zoom) {
       this.setState({zoom}, () => {
-        this.drawOnCanvas();
+        this.drawOnCanvas(this.imageCanvasRef);
+        this.drawOnCanvas(this.imageCanvasRefBackground);
       });
     }
   }
@@ -680,18 +684,18 @@ class ReactCrop extends Component {
     return {x, y, width, height, aspect};
   }
 
-  drawOnCanvas() {
+  drawOnCanvas(canvasElement) {
     const img = this.imageRef;
     const {zoom} = this.state;
     const {naturalWidth, naturalHeight} = img;
-    const ctx = this.imageCanvasRef.getContext('2d');
+    const ctx = canvasElement.getContext('2d');
 
     const width = naturalWidth;
     const height = naturalHeight;
     const xOffset = width / 2;
     const yOffset = height / 2;
 
-    ctx.clearRect(0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
+    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     ctx.save();
     ctx.translate(xOffset, yOffset);
     ctx.scale(zoom, zoom);
@@ -701,8 +705,8 @@ class ReactCrop extends Component {
       this.imageRef,
       -xOffset,
       -yOffset,
-      this.imageCanvasRef.width,
-      this.imageCanvasRef.height,
+      canvasElement.width,
+      canvasElement.height,
     );
     ctx.restore();
   }
@@ -903,6 +907,14 @@ class ReactCrop extends Component {
             this.cropWrapperRef = c;
           }}
         >
+          <canvas
+            width="1"
+            height="1"
+            ref={(c) => {
+              this.imageCanvasRefBackground = c;
+            }}
+            className="ReactCrop--image-copy"
+          />
           <canvas
             width="1"
             height="1"
