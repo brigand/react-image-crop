@@ -656,7 +656,10 @@ module.exports =
 
 	      this.imageCanvasRef.width = imageEl.naturalWidth;
 	      this.imageCanvasRef.height = imageEl.naturalHeight;
-	      this.drawOnCanvas();
+	      this.imageCanvasRefBackground.width = imageEl.naturalWidth;
+	      this.imageCanvasRefBackground.height = imageEl.naturalHeight;
+	      this.drawOnCanvas(this.imageCanvasRef);
+	      this.drawOnCanvas(this.imageCanvasRefBackground);
 
 	      // If there is a width or height then infer the other to
 	      // ensure the value is correct.
@@ -686,7 +689,8 @@ module.exports =
 
 	      if (this.state.zoom !== zoom) {
 	        this.setState({ zoom: zoom }, function () {
-	          _this4.drawOnCanvas();
+	          _this4.drawOnCanvas(_this4.imageCanvasRef);
+	          _this4.drawOnCanvas(_this4.imageCanvasRefBackground);
 	        });
 	      }
 	    }
@@ -731,25 +735,25 @@ module.exports =
 	    }
 	  }, {
 	    key: 'drawOnCanvas',
-	    value: function drawOnCanvas() {
+	    value: function drawOnCanvas(canvasElement) {
 	      var img = this.imageRef;
 	      var zoom = this.state.zoom;
 	      var naturalWidth = img.naturalWidth,
 	          naturalHeight = img.naturalHeight;
 
-	      var ctx = this.imageCanvasRef.getContext('2d');
+	      var ctx = canvasElement.getContext('2d');
 
 	      var width = naturalWidth;
 	      var height = naturalHeight;
 	      var xOffset = width / 2;
 	      var yOffset = height / 2;
 
-	      ctx.clearRect(0, 0, this.imageCanvasRef.width, this.imageCanvasRef.height);
+	      ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 	      ctx.save();
 	      ctx.translate(xOffset, yOffset);
 	      ctx.scale(zoom, zoom);
 
-	      ctx.drawImage(this.imageRef, -xOffset, -yOffset, this.imageCanvasRef.width, this.imageCanvasRef.height);
+	      ctx.drawImage(this.imageRef, -xOffset, -yOffset, canvasElement.width, canvasElement.height);
 	      ctx.restore();
 	    }
 	  }, {
@@ -971,6 +975,14 @@ module.exports =
 	              _this6.cropWrapperRef = c;
 	            }
 	          },
+	          _react2.default.createElement('canvas', {
+	            width: '1',
+	            height: '1',
+	            ref: function ref(c) {
+	              _this6.imageCanvasRefBackground = c;
+	            },
+	            className: 'ReactCrop--image-copy'
+	          }),
 	          _react2.default.createElement('canvas', {
 	            width: '1',
 	            height: '1',
