@@ -69,7 +69,6 @@ class ReactCrop extends Component {
     this.onMouseOut = this.onMouseOut.bind(this);
     this.onWindowScroll = this.onWindowScroll.bind(this);
 
-
     this.state = {
       crop: this.nextCropState(props.crop),
       polygonId: this.getRandomInt(1, 900000),
