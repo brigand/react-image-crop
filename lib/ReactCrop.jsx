@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import assign from 'object-assign';
+import {ObjectVector as Vec} from 'vector2d';
 
 // Waiting for bug fix: https://github.com/yannickcr/eslint-plugin-react/issues/507
 /* eslint-disable react/sort-comp */
@@ -669,18 +670,21 @@ class ReactCrop extends Component {
   zoomCrop(crop) {
     const {zoom} = this.state;
     const image = this.imageRef;
-    const {naturalWidth, naturalHeight} = image;
-    const percent = 1/zoom;
+    const {naturalWidth: imageWidth, naturalHeight: imageHeight} = image;
 
-    const dx = crop.x / zoom;
-    const dy = crop.y / zoom;
-    const x = crop.x + (dx * zoom) - dx;
-    const y = crop.y + (dy * zoom) - dy;
     const width = crop.width / zoom;
     const height = crop.height / zoom;
-    const aspect = crop.aspect;
 
-    return {x, y, width, height, aspect};
+    const centerV = new Vec(imageWidth / 2 - width / 2, imageHeight / 2 - height / 2);
+    const cropV = new Vec(crop.x, crop.y);
+    const distance = centerV.distance(cropV);
+    const normV = centerV.subtract(cropV).normalize();
+    const pos = normV.multiplyByScalar(distance);
+
+    const x = pos.x;
+    const y = pos.y;
+
+    return {x, y, width, height, aspect: crop.aspect};
   }
 
   drawOnCanvas(canvasElement) {

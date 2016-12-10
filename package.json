@@ -48,5 +48,8 @@
   "peerDependencies": {
     "object-assign": "*",
     "react": "^15.3.2"
+  },
+  "dependencies": {
+    "vector2d": "^2.1.0"
   }
 }
