@@ -164,13 +164,11 @@ class ReactCrop extends Component {
 
     this.cropInvalid = false;
 
-    const zoomedCrop = this.zoomCrop(crop);
+    // const zoomedCrop = this.zoomCrop(crop);
     if (this.props.onChange) {
       this.props.onChange(
         crop,
         this.getPixelCrop(crop),
-        zoomedCrop,
-        this.getPixelCrop(zoomedCrop),
       );
     }
 
@@ -319,7 +317,6 @@ class ReactCrop extends Component {
             crop,
             this.getPixelCrop(crop),
             zoomedCrop,
-            this.getPixelCrop(zoomedCrop),
           );
         }
       });
@@ -650,6 +647,15 @@ class ReactCrop extends Component {
       this.setState({zoom}, () => {
         this.drawOnCanvas(this.imageCanvasRef);
         this.drawOnCanvas(this.imageCanvasRefBackground);
+        const {crop} = this.state;
+        const zoomedCrop = this.zoomCrop(crop);
+        if (this.props.onComplete) {
+          this.props.onComplete(
+            crop,
+            this.getPixelCrop(crop),
+            zoomedCrop,
+          );
+        }
       });
     }
   }
@@ -668,22 +674,26 @@ class ReactCrop extends Component {
   }
 
   zoomCrop(crop) {
+    crop = this.getPixelCrop(crop);
     const {zoom} = this.state;
     const image = this.imageRef;
     const {naturalWidth: imageWidth, naturalHeight: imageHeight} = image;
 
+    const pin = {x: crop.x, y: crop.y};
+    const z = zoom;
+    const xnl = imageWidth * z;
+    const ynl = imageHeight * z;
+    const dx = (xnl - imageWidth) / 2;
+    const dy = (ynl - imageHeight) / 2;
+    const xnc = crop.x + dx;
+    const ync = crop.y + dy;
+    const xc = xnc / z;
+    const yc = ync / z;
+    console.log(JSON.stringify({zoom, crop, xnl, ynl, dx, dy, xnc, ync, xc, yc}, null, 2))
+    const x = xc;
+    const y = yc;
     const width = crop.width / zoom;
     const height = crop.height / zoom;
-
-    const centerV = new Vec(imageWidth / 2 - width / 2, imageHeight / 2 - height / 2);
-    const cropV = new Vec(crop.x, crop.y);
-    const distance = centerV.distance(cropV);
-    const normV = centerV.subtract(cropV).normalize();
-    const pos = normV.multiplyByScalar(distance);
-
-    const x = pos.x;
-    const y = pos.y;
-
     return {x, y, width, height, aspect: crop.aspect};
   }
 

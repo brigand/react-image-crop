@@ -193,9 +193,9 @@ module.exports =
 
 	      this.cropInvalid = false;
 
-	      var zoomedCrop = this.zoomCrop(crop);
+	      // const zoomedCrop = this.zoomCrop(crop);
 	      if (this.props.onChange) {
-	        this.props.onChange(crop, this.getPixelCrop(crop), zoomedCrop, this.getPixelCrop(zoomedCrop));
+	        this.props.onChange(crop, this.getPixelCrop(crop));
 	      }
 
 	      this.setState({ crop: crop });
@@ -341,7 +341,7 @@ module.exports =
 	            _this3.props.onChange(crop, _this3.getPixelCrop(crop), zoomedCrop, _this3.getPixelCrop(zoomedCrop));
 	          }
 	          if (_this3.props.onComplete) {
-	            _this3.props.onComplete(crop, _this3.getPixelCrop(crop), zoomedCrop, _this3.getPixelCrop(zoomedCrop));
+	            _this3.props.onComplete(crop, _this3.getPixelCrop(crop), zoomedCrop);
 	          }
 	        });
 	      }
@@ -693,6 +693,12 @@ module.exports =
 	        this.setState({ zoom: zoom }, function () {
 	          _this4.drawOnCanvas(_this4.imageCanvasRef);
 	          _this4.drawOnCanvas(_this4.imageCanvasRefBackground);
+	          var crop = _this4.state.crop;
+
+	          var zoomedCrop = _this4.zoomCrop(crop);
+	          if (_this4.props.onComplete) {
+	            _this4.props.onComplete(crop, _this4.getPixelCrop(crop), zoomedCrop);
+	          }
 	        });
 	      }
 	    }
@@ -717,6 +723,7 @@ module.exports =
 	  }, {
 	    key: 'zoomCrop',
 	    value: function zoomCrop(crop) {
+	      crop = this.getPixelCrop(crop);
 	      var zoom = this.state.zoom;
 
 	      var image = this.imageRef;
@@ -724,18 +731,21 @@ module.exports =
 	          imageHeight = image.naturalHeight;
 
 
+	      var pin = { x: crop.x, y: crop.y };
+	      var z = zoom;
+	      var xnl = imageWidth * z;
+	      var ynl = imageHeight * z;
+	      var dx = (xnl - imageWidth) / 2;
+	      var dy = (ynl - imageHeight) / 2;
+	      var xnc = crop.x + dx;
+	      var ync = crop.y + dy;
+	      var xc = xnc / z;
+	      var yc = ync / z;
+	      console.log(JSON.stringify({ zoom: zoom, crop: crop, xnl: xnl, ynl: ynl, dx: dx, dy: dy, xnc: xnc, ync: ync, xc: xc, yc: yc }, null, 2));
+	      var x = xc;
+	      var y = yc;
 	      var width = crop.width / zoom;
 	      var height = crop.height / zoom;
-
-	      var centerV = new _vector2d.ObjectVector(imageWidth / 2 - width / 2, imageHeight / 2 - height / 2);
-	      var cropV = new _vector2d.ObjectVector(crop.x, crop.y);
-	      var distance = centerV.distance(cropV);
-	      var normV = centerV.subtract(cropV).normalize();
-	      var pos = normV.multiplyByScalar(distance);
-
-	      var x = pos.x;
-	      var y = pos.y;
-
 	      return { x: x, y: y, width: width, height: height, aspect: crop.aspect };
 	    }
 	  }, {
