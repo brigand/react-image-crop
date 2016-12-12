@@ -222,7 +222,11 @@ class ReactCrop extends Component {
   }
 
   onComponentMouseTouchDown(e) {
-    if (e.target !== this.imageCanvasRef && e.target !== this.cropWrapperRef) {
+    if (
+      e.target !== this.imageCanvasRef
+      && e.target !== this.cropWrapperRef
+      && e.target !== this.eventTargetRef
+    ) {
       return;
     }
 
@@ -935,15 +939,19 @@ class ReactCrop extends Component {
             ref={(c) => {
               this.imageCanvasRef = c;
             }}
-            onWheel={this.onWheel}
-            onMouseOver={this.onMouseOver}
-            onMouseOut={this.onMouseOut}
             className="ReactCrop--image-copy"
             style={imageClip}
           />
           {cropSelection}
         </div>
 
+        <div
+          className="ReactCrop--event-target"
+          onWheel={this.onWheel}
+          onMouseOver={this.onMouseOver}
+          onMouseOut={this.onMouseOut}
+          ref={ref => this.eventTargetRef = ref}
+        />
         {this.props.children}
       </div>
     );

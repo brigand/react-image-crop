@@ -251,7 +251,7 @@ module.exports =
 	  }, {
 	    key: 'onComponentMouseTouchDown',
 	    value: function onComponentMouseTouchDown(e) {
-	      if (e.target !== this.imageCanvasRef && e.target !== this.cropWrapperRef) {
+	      if (e.target !== this.imageCanvasRef && e.target !== this.cropWrapperRef && e.target !== this.eventTargetRef) {
 	        return;
 	      }
 
@@ -1005,14 +1005,20 @@ module.exports =
 	            ref: function ref(c) {
 	              _this6.imageCanvasRef = c;
 	            },
-	            onWheel: this.onWheel,
-	            onMouseOver: this.onMouseOver,
-	            onMouseOut: this.onMouseOut,
 	            className: 'ReactCrop--image-copy',
 	            style: imageClip
 	          }),
 	          cropSelection
 	        ),
+	        _react2.default.createElement('div', {
+	          className: 'ReactCrop--event-target',
+	          onWheel: this.onWheel,
+	          onMouseOver: this.onMouseOver,
+	          onMouseOut: this.onMouseOut,
+	          ref: function ref(_ref) {
+	            return _this6.eventTargetRef = _ref;
+	          }
+	        }),
 	        this.props.children
 	      );
 	    }
