@@ -282,6 +282,7 @@ $drag-bar-mobile-size: $drag-bar-size + 8;
 
 .ReactCrop--event-target {
   position: absolute;
+  cursor: crosshair;
   top: 0;
   right: 0;
   bottom: 0;
