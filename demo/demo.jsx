@@ -30,24 +30,24 @@ function loadEditView(url) {
       console.log('Image was loaded. Crop:', crop);
     }
 
-    onCropComplete(crop) {
-      console.log('Crop move complete:', crop);
+    onCropComplete(crop, pixelCrop, zoomCrop) {
+      console.log('Crop move complete:', crop, pixelCrop, zoomCrop);
       this.setState({ hello: Date.now(), crop });
 
       var canvas = this.refs.canvas;
-      canvas.width = crop.width;
-      canvas.height = crop.height;
+      canvas.width = zoomCrop.width;
+      canvas.height = zoomCrop.height;
       var ctx = canvas.getContext('2d');
       ctx.drawImage(
         this.image,
-        crop.x,
-        crop.y,
-        crop.width,
-        crop.height,
+        zoomCrop.x,
+        zoomCrop.y,
+        zoomCrop.width,
+        zoomCrop.height,
         0,
         0,
-        crop.width,
-        crop.height,
+        zoomCrop.width,
+        zoomCrop.height,
       );
     }
 
@@ -57,16 +57,16 @@ function loadEditView(url) {
 
     render() {
       return (
-        <div style={{width: '30em', margin: '10em auto'}}>
+        <div style={{width: '30em', margin: '1em auto'}}>
           <ReactCrop
-            {...this.state}
+            crop={this.state.crop}
             src={url}
-            onImageLoaded={(crop) => this.onImageLoaded(crop)}
-            onComplete={(crop) => this.onCropComplete(crop)}
+            onImageLoaded={this.onImageLoaded.bind(this)}
+            onComplete={this.onCropComplete.bind(this)}
             // onChange={this.onCropChange}
           />
-          <pre>{JSON.stringify(this.crop, null, 2)}</pre>
-          <canvas width="100" height="100" ref="canvas" style={{boder: '10px solid red'}}></canvas>
+          {/* <pre>{JSON.stringify(this.state.crop, null, 2)}</pre> */}
+          <canvas width="100" height="100" ref="canvas" style={{boder: '10px solid red', width: '300px'}}></canvas>
         </div>
       );
     }

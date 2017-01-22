@@ -12,7 +12,8 @@
     "sass-watch": "node-sass lib/ReactCrop.scss dist/ReactCrop.css --watch",
     "release-js": "cross-env NODE_ENV=production webpack",
     "release-css": "node-sass lib/ReactCrop.scss dist/ReactCrop.css",
-    "release": "npm run release-js && npm run release-css"
+    "release": "npm run release-js && npm run release-css",
+    "serve": "http-server -p 3213 -c-1"
   },
   "author": "Dominic Tobias <dominic.tobias@gmail.com>",
   "keywords": [
@@ -40,6 +41,7 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^2",
     "eslint-plugin-react": "^6.6.0",
+    "http-server": "^0.9.0",
     "node-sass": "^3.11.2",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",

@@ -343,7 +343,6 @@ class ReactCrop extends Component {
           crop,
           this.getPixelCrop(crop),
           zoomedCrop,
-          this.getPixelCrop(zoomedCrop),
         );
       }
 

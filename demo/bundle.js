@@ -46,8 +46,6 @@
 
 	'use strict';
 
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	var _react = __webpack_require__(1);
@@ -109,15 +107,15 @@
 	      }
 	    }, {
 	      key: 'onCropComplete',
-	      value: function onCropComplete(crop) {
-	        console.log('Crop move complete:', crop);
+	      value: function onCropComplete(crop, pixelCrop, zoomCrop) {
+	        console.log('Crop move complete:', crop, pixelCrop, zoomCrop);
 	        this.setState({ hello: Date.now(), crop: crop });
 
 	        var canvas = this.refs.canvas;
-	        canvas.width = crop.width;
-	        canvas.height = crop.height;
+	        canvas.width = zoomCrop.width;
+	        canvas.height = zoomCrop.height;
 	        var ctx = canvas.getContext('2d');
-	        ctx.drawImage(this.image, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
+	        ctx.drawImage(this.image, zoomCrop.x, zoomCrop.y, zoomCrop.width, zoomCrop.height, 0, 0, zoomCrop.width, zoomCrop.height);
 	      }
 
 	      // onCropChange: function(crop) {
@@ -127,27 +125,17 @@
 	    }, {
 	      key: 'render',
 	      value: function render() {
-	        var _this2 = this;
-
 	        return _react2.default.createElement(
 	          'div',
-	          { style: { width: '30em', margin: '10em auto' } },
-	          _react2.default.createElement(_ReactCrop2.default, _extends({}, this.state, {
+	          { style: { width: '30em', margin: '1em auto' } },
+	          _react2.default.createElement(_ReactCrop2.default, {
+	            crop: this.state.crop,
 	            src: url,
-	            onImageLoaded: function onImageLoaded(crop) {
-	              return _this2.onImageLoaded(crop);
-	            },
-	            onComplete: function onComplete(crop) {
-	              return _this2.onCropComplete(crop);
-	            }
+	            onImageLoaded: this.onImageLoaded.bind(this),
+	            onComplete: this.onCropComplete.bind(this)
 	            // onChange={this.onCropChange}
-	          })),
-	          _react2.default.createElement(
-	            'pre',
-	            null,
-	            JSON.stringify(this.crop, null, 2)
-	          ),
-	          _react2.default.createElement('canvas', { width: '100', height: '100', ref: 'canvas', style: { boder: '10px solid red' } })
+	          }),
+	          _react2.default.createElement('canvas', { width: '100', height: '100', ref: 'canvas', style: { boder: '10px solid red', width: '300px' } })
 	        );
 	      }
 	    }]);
@@ -21891,7 +21879,7 @@
 
 	        if (this.props.onComplete) {
 	          var zoomedCrop = this.zoomCrop(crop);
-	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop, this.getPixelCrop(zoomedCrop));
+	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop);
 	        }
 
 	        this.setState({ newCropIsBeingDrawn: false });
