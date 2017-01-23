@@ -57,7 +57,7 @@ function loadEditView(url) {
 
     render() {
       return (
-        <div style={{width: '30em', margin: '1em auto'}}>
+        <div style={{width: '40%', margin: '1em auto'}}>
           <ReactCrop
             crop={this.state.crop}
             src={url}
@@ -66,7 +66,7 @@ function loadEditView(url) {
             // onChange={this.onCropChange}
           />
           {/* <pre>{JSON.stringify(this.state.crop, null, 2)}</pre> */}
-          <canvas width="100" height="100" ref="canvas" style={{boder: '10px solid red', width: '300px'}}></canvas>
+          <canvas width="100" height="100" ref="canvas" style={{boder: '10px solid red', width: '100%'}}></canvas>
         </div>
       );
     }
@@ -79,4 +79,5 @@ function loadEditView(url) {
  * Select an image file.
  */
 
-loadEditView('https://c7.staticflickr.com/6/5630/30569330894_9e5f7feeb1_n.jpg');
+// loadEditView('https://c7.staticflickr.com/6/5630/30569330894_9e5f7feeb1_n.jpg');
+loadEditView('https://i.imgur.com/nDzRLxK.png');

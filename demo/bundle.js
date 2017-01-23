@@ -127,7 +127,7 @@
 	      value: function render() {
 	        return _react2.default.createElement(
 	          'div',
-	          { style: { width: '30em', margin: '1em auto' } },
+	          { style: { width: '40%', margin: '1em auto' } },
 	          _react2.default.createElement(_ReactCrop2.default, {
 	            crop: this.state.crop,
 	            src: url,
@@ -135,7 +135,7 @@
 	            onComplete: this.onCropComplete.bind(this)
 	            // onChange={this.onCropChange}
 	          }),
-	          _react2.default.createElement('canvas', { width: '100', height: '100', ref: 'canvas', style: { boder: '10px solid red', width: '300px' } })
+	          _react2.default.createElement('canvas', { width: '100', height: '100', ref: 'canvas', style: { boder: '10px solid red', width: '100%' } })
 	        );
 	      }
 	    }]);
@@ -150,7 +150,8 @@
 	 * Select an image file.
 	 */
 
-	loadEditView('https://c7.staticflickr.com/6/5630/30569330894_9e5f7feeb1_n.jpg');
+	// loadEditView('https://c7.staticflickr.com/6/5630/30569330894_9e5f7feeb1_n.jpg');
+	loadEditView('https://i.imgur.com/nDzRLxK.png');
 
 /***/ },
 /* 1 */
@@ -21565,6 +21566,8 @@
 
 	'use strict';
 
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	var _react = __webpack_require__(1);
@@ -21610,8 +21613,8 @@
 	    _this.state = {
 	      crop: _this.nextCropState(props.crop),
 	      polygonId: _this.getRandomInt(1, 900000),
-	      zoom: 1
-	    };
+	      zoom: 1,
+	      mode: 'crop' };
 	    return _this;
 	  }
 
@@ -22485,7 +22488,8 @@
 	          onTouchStart: this.onComponentMouseTouchDown,
 	          onMouseDown: this.onComponentMouseTouchDown,
 	          tabIndex: '1',
-	          onKeyDown: this.onComponentKeyDown
+	          onKeyDown: this.onComponentKeyDown,
+	          style: { position: 'relative' }
 	        },
 	        this.renderSvg(),
 	        _react2.default.createElement('img', {
@@ -22537,7 +22541,60 @@
 	            return _this6.eventTargetRef = _ref;
 	          }
 	        }),
-	        this.props.children
+	        this.props.children,
+	        _react2.default.createElement(
+	          'div',
+	          { style: { position: 'absolute', bottom: '3px', right: '3px' } },
+	          this.renderModeButtons()
+	        )
+	      );
+	    }
+	  }, {
+	    key: 'renderModeButtons',
+	    value: function renderModeButtons() {
+	      var _this7 = this;
+
+	      var mode = this.state.mode;
+
+	      var buttonStyle = {
+	        display: 'inline-block',
+	        padding: '0.25em 0.5em',
+	        marginLeft: '3px',
+	        background: 'white',
+	        color: '#444',
+	        fontFamily: 'Arial',
+	        textAlign: 'center',
+	        cursor: 'pointer'
+	      };
+
+	      var inactiveOpacity = '0.75';
+	      var cropButtonStyle = _extends({}, buttonStyle, {
+	        opacity: inactiveOpacity
+	      });
+	      var panButtonStyle = _extends({}, buttonStyle, {
+	        opacity: inactiveOpacity
+	      });
+
+	      if (mode === 'crop') cropButtonStyle.opacity = '1';
+	      if (mode === 'pan') panButtonStyle.opacity = '1';
+
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	          'div',
+	          { style: cropButtonStyle, onClick: function onClick() {
+	              return _this7.setState({ mode: 'crop' });
+	            } },
+	          'Crop'
+	        ),
+	        _react2.default.createElement(
+	          'div',
+	          { style: panButtonStyle, onClick: function onClick() {
+	              return _this7.setState({ mode: 'pan' });
+	            } },
+	          'Pan'
+	        )
 	      );
 	    }
 	  }]);

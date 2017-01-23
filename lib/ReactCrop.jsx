@@ -74,6 +74,7 @@ class ReactCrop extends Component {
       crop: this.nextCropState(props.crop),
       polygonId: this.getRandomInt(1, 900000),
       zoom: 1,
+      mode: 'crop', // or 'pan'
     };
   }
 
@@ -903,6 +904,7 @@ class ReactCrop extends Component {
         onMouseDown={this.onComponentMouseTouchDown}
         tabIndex="1"
         onKeyDown={this.onComponentKeyDown}
+        style={{position: 'relative'}}
       >
         {this.renderSvg()}
 
@@ -952,6 +954,47 @@ class ReactCrop extends Component {
           ref={ref => this.eventTargetRef = ref}
         />
         {this.props.children}
+        <div style={{position: 'absolute', bottom: '3px', right: '3px'}}>
+          {this.renderModeButtons()}
+        </div>
+      </div>
+    );
+  }
+
+  renderModeButtons() {
+    const {mode} = this.state;
+    const buttonStyle = {
+      display: 'inline-block',
+      padding: '0.25em 0.5em',
+      marginLeft: '3px',
+      background: 'white',
+      color: '#444',
+      fontFamily: 'Arial',
+      textAlign: 'center',
+      cursor: 'pointer',
+    };
+
+    const inactiveOpacity = '0.75';
+    const cropButtonStyle = {
+      ...buttonStyle,
+      opacity: inactiveOpacity,
+    };
+    const panButtonStyle = {
+      ...buttonStyle,
+      opacity: inactiveOpacity,
+    };
+
+    if (mode === 'crop') cropButtonStyle.opacity = '1';
+    if (mode === 'pan') panButtonStyle.opacity = '1';
+
+    return (
+      <div>
+        <div style={cropButtonStyle} onClick={() => this.setState({mode: 'crop'})}>
+          Crop
+        </div>
+        <div style={panButtonStyle} onClick={() => this.setState({mode: 'pan'})}>
+          Pan
+        </div>
       </div>
     );
   }
