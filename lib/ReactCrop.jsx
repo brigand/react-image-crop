@@ -69,6 +69,7 @@ class ReactCrop extends Component {
     this.onMouseOver = this.onMouseOver.bind(this);
     this.onMouseOut = this.onMouseOut.bind(this);
     this.onWindowScroll = this.onWindowScroll.bind(this);
+    this.onPanMouseMove = this.onPanMouseMove.bind(this);
 
     this.state = {
       crop: this.nextCropState(props.crop),
@@ -237,6 +238,11 @@ class ReactCrop extends Component {
 
     e.preventDefault(); // Stop drag selection.
 
+    if (this.state.mode === 'pan') {
+      this.onPanMouseTouchDown(e);
+      return;
+    }
+
     const crop = this.props.keepSelection === true ? {} : this.state.crop;
     const clientPos = this.getClientPos(e);
 
@@ -328,8 +334,13 @@ class ReactCrop extends Component {
     }
   }
 
-  onDocMouseTouchEnd() {
+  onDocMouseTouchEnd(e) {
     if (this.props.disabled) {
+      return;
+    }
+
+    if (this.state.mode === 'pan') {
+      this.onPanMouseTouchEnd(e);
       return;
     }
 
@@ -349,6 +360,24 @@ class ReactCrop extends Component {
 
       this.setState({ newCropIsBeingDrawn: false });
     }
+  }
+
+  onPanMouseTouchDown(e) {
+    this.isPanning = true;
+    this.panStartPosition = {x: e.clientX, y: e.clientY};
+    console.log(this.panStartPosition);
+  }
+
+  onPanMouseTouchEnd(e) {
+    this.isPanning = false;
+  }
+
+  onPanMouseMove(e) {
+    if (this.state.mode !== 'pan') return;
+    if (!this.isPanning) return;
+    const diffX = e.clientX - this.panStartPosition.x;
+    const diffY = e.clientY - this.panStartPosition.y;
+    // console.log({diffX, diffY});
   }
 
   getPixelCrop(crop) {
@@ -951,6 +980,7 @@ class ReactCrop extends Component {
           onWheel={this.onWheel}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
+          onMouseMove={this.onPanMouseMove}
           ref={ref => this.eventTargetRef = ref}
         />
         {this.props.children}

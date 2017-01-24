@@ -21609,6 +21609,7 @@
 	    _this.onMouseOver = _this.onMouseOver.bind(_this);
 	    _this.onMouseOut = _this.onMouseOut.bind(_this);
 	    _this.onWindowScroll = _this.onWindowScroll.bind(_this);
+	    _this.onPanMouseMove = _this.onPanMouseMove.bind(_this);
 
 	    _this.state = {
 	      crop: _this.nextCropState(props.crop),
@@ -21782,6 +21783,11 @@
 
 	      e.preventDefault(); // Stop drag selection.
 
+	      if (this.state.mode === 'pan') {
+	        this.onPanMouseTouchDown(e);
+	        return;
+	      }
+
 	      var crop = this.props.keepSelection === true ? {} : this.state.crop;
 	      var clientPos = this.getClientPos(e);
 
@@ -21869,8 +21875,13 @@
 	    }
 	  }, {
 	    key: 'onDocMouseTouchEnd',
-	    value: function onDocMouseTouchEnd() {
+	    value: function onDocMouseTouchEnd(e) {
 	      if (this.props.disabled) {
+	        return;
+	      }
+
+	      if (this.state.mode === 'pan') {
+	        this.onPanMouseTouchEnd(e);
 	        return;
 	      }
 
@@ -21887,6 +21898,27 @@
 
 	        this.setState({ newCropIsBeingDrawn: false });
 	      }
+	    }
+	  }, {
+	    key: 'onPanMouseTouchDown',
+	    value: function onPanMouseTouchDown(e) {
+	      this.isPanning = true;
+	      this.panStartPosition = { x: e.clientX, y: e.clientY };
+	      console.log(this.panStartPosition);
+	    }
+	  }, {
+	    key: 'onPanMouseTouchEnd',
+	    value: function onPanMouseTouchEnd(e) {
+	      this.isPanning = false;
+	    }
+	  }, {
+	    key: 'onPanMouseMove',
+	    value: function onPanMouseMove(e) {
+	      if (this.state.mode !== 'pan') return;
+	      if (!this.isPanning) return;
+	      var diffX = e.clientX - this.panStartPosition.x;
+	      var diffY = e.clientY - this.panStartPosition.y;
+	      // console.log({diffX, diffY});
 	    }
 	  }, {
 	    key: 'getPixelCrop',
@@ -22537,6 +22569,7 @@
 	          onWheel: this.onWheel,
 	          onMouseOver: this.onMouseOver,
 	          onMouseOut: this.onMouseOut,
+	          onMouseMove: this.onPanMouseMove,
 	          ref: function ref(_ref) {
 	            return _this6.eventTargetRef = _ref;
 	          }
