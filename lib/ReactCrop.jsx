@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import assign from 'object-assign';
+import throttle from 'lodash/throttle';
 import {ObjectVector as Vec} from 'vector2d';
 
 // Waiting for bug fix: https://github.com/yannickcr/eslint-plugin-react/issues/507
@@ -70,6 +71,8 @@ class ReactCrop extends Component {
     this.onMouseOut = this.onMouseOut.bind(this);
     this.onWindowScroll = this.onWindowScroll.bind(this);
     this.onPanMouseMove = this.onPanMouseMove.bind(this);
+
+    this.renderCanvases = throttle(this.renderCanvases.bind(this), 30, {leading: true, trailing: true});
 
     this.state = {
       crop: this.nextCropState(props.crop),
@@ -364,8 +367,8 @@ class ReactCrop extends Component {
 
   onPanMouseTouchDown(e) {
     this.isPanning = true;
+    this.panInitialState = this.panPosition ? {...this.panPosition} : {x: 0, y: 0};
     this.panStartPosition = {x: e.clientX, y: e.clientY};
-    console.log(this.panStartPosition);
   }
 
   onPanMouseTouchEnd(e) {
@@ -377,7 +380,12 @@ class ReactCrop extends Component {
     if (!this.isPanning) return;
     const diffX = e.clientX - this.panStartPosition.x;
     const diffY = e.clientY - this.panStartPosition.y;
-    // console.log({diffX, diffY});
+    this.panPosition = {
+      x: this.panInitialState.x + diffX,
+      y: this.panInitialState.y + diffY,
+    };
+    console.log(this.panPosition);
+    this.renderCanvases();
   }
 
   getPixelCrop(crop) {
@@ -648,8 +656,7 @@ class ReactCrop extends Component {
     this.imageCanvasRef.height = imageEl.naturalHeight;
     this.imageCanvasRefBackground.width = imageEl.naturalWidth;
     this.imageCanvasRefBackground.height = imageEl.naturalHeight;
-    this.drawOnCanvas(this.imageCanvasRef);
-    this.drawOnCanvas(this.imageCanvasRefBackground);
+    this.renderCanvases();
 
     // If there is a width or height then infer the other to
     // ensure the value is correct.
@@ -730,10 +737,16 @@ class ReactCrop extends Component {
     return {x, y, width, height, aspect: crop.aspect};
   }
 
+  renderCanvases() {
+    this.drawOnCanvas(this.imageCanvasRef);
+    this.drawOnCanvas(this.imageCanvasRefBackground);
+  }
+
   drawOnCanvas(canvasElement) {
     const img = this.imageRef;
     const {zoom} = this.state;
     const {naturalWidth, naturalHeight} = img;
+    const {panPosition = {x: 0, y: 0}} = this;
     const ctx = canvasElement.getContext('2d');
 
     const width = naturalWidth;
@@ -749,8 +762,8 @@ class ReactCrop extends Component {
 
     ctx.drawImage(
       this.imageRef,
-      -xOffset,
-      -yOffset,
+      -xOffset + panPosition.x,
+      -yOffset + panPosition.y,
       canvasElement.width,
       canvasElement.height,
     );
@@ -976,7 +989,7 @@ class ReactCrop extends Component {
         </div>
 
         <div
-          className="ReactCrop--event-target"
+          className={`ReactCrop--event-target ReactCrop--event-target--${this.state.mode}`}
           onWheel={this.onWheel}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
