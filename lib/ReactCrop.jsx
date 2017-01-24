@@ -373,6 +373,17 @@ class ReactCrop extends Component {
 
   onPanMouseTouchEnd(e) {
     this.isPanning = false;
+    if (this.props.onComplete) {
+      const {crop} = this.state;
+      const zoomedCrop = this.zoomCrop(crop);
+      if (this.props.onComplete) {
+        this.props.onComplete(
+          crop,
+          this.getPixelCrop(crop),
+          zoomedCrop,
+        );
+      }
+    }
   }
 
   onPanMouseMove(e) {
@@ -715,6 +726,7 @@ class ReactCrop extends Component {
 
   zoomCrop(crop) {
     crop = this.getPixelCrop(crop);
+    const {panPosition = {x: 0, y: 0}} = this;
     const {zoom} = this.state;
     const image = this.imageRef;
     const {naturalWidth: imageWidth, naturalHeight: imageHeight} = image;
@@ -730,8 +742,8 @@ class ReactCrop extends Component {
     const xc = xnc / z;
     const yc = ync / z;
     console.log(JSON.stringify({zoom, crop, xnl, ynl, dx, dy, xnc, ync, xc, yc}, null, 2))
-    const x = xc;
-    const y = yc;
+    const x = xc - panPosition.x;
+    const y = yc - panPosition.y;
     const width = crop.width / zoom;
     const height = crop.height / zoom;
     return {x, y, width, height, aspect: crop.aspect};

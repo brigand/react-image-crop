@@ -21916,6 +21916,14 @@
 	    key: 'onPanMouseTouchEnd',
 	    value: function onPanMouseTouchEnd(e) {
 	      this.isPanning = false;
+	      if (this.props.onComplete) {
+	        var crop = this.state.crop;
+
+	        var zoomedCrop = this.zoomCrop(crop);
+	        if (this.props.onComplete) {
+	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop);
+	        }
+	      }
 	    }
 	  }, {
 	    key: 'onPanMouseMove',
@@ -22287,6 +22295,8 @@
 	    key: 'zoomCrop',
 	    value: function zoomCrop(crop) {
 	      crop = this.getPixelCrop(crop);
+	      var _panPosition = this.panPosition,
+	          panPosition = _panPosition === undefined ? { x: 0, y: 0 } : _panPosition;
 	      var zoom = this.state.zoom;
 
 	      var image = this.imageRef;
@@ -22305,8 +22315,8 @@
 	      var xc = xnc / z;
 	      var yc = ync / z;
 	      console.log(JSON.stringify({ zoom: zoom, crop: crop, xnl: xnl, ynl: ynl, dx: dx, dy: dy, xnc: xnc, ync: ync, xc: xc, yc: yc }, null, 2));
-	      var x = xc;
-	      var y = yc;
+	      var x = xc - panPosition.x;
+	      var y = yc - panPosition.y;
 	      var width = crop.width / zoom;
 	      var height = crop.height / zoom;
 	      return { x: x, y: y, width: width, height: height, aspect: crop.aspect };
@@ -22324,8 +22334,8 @@
 	      var zoom = this.state.zoom;
 	      var naturalWidth = img.naturalWidth,
 	          naturalHeight = img.naturalHeight;
-	      var _panPosition = this.panPosition,
-	          panPosition = _panPosition === undefined ? { x: 0, y: 0 } : _panPosition;
+	      var _panPosition2 = this.panPosition,
+	          panPosition = _panPosition2 === undefined ? { x: 0, y: 0 } : _panPosition2;
 
 	      var ctx = canvasElement.getContext('2d');
 
