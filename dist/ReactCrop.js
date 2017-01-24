@@ -47,6 +47,8 @@ module.exports =
 
 	'use strict';
 
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	var _react = __webpack_require__(1);
@@ -57,7 +59,11 @@ module.exports =
 
 	var _objectAssign2 = _interopRequireDefault(_objectAssign);
 
-	var _vector2d = __webpack_require__(3);
+	var _throttle = __webpack_require__(3);
+
+	var _throttle2 = _interopRequireDefault(_throttle);
+
+	var _vector2d = __webpack_require__(16);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -88,12 +94,15 @@ module.exports =
 	    _this.onMouseOver = _this.onMouseOver.bind(_this);
 	    _this.onMouseOut = _this.onMouseOut.bind(_this);
 	    _this.onWindowScroll = _this.onWindowScroll.bind(_this);
+	    _this.onPanMouseMove = _this.onPanMouseMove.bind(_this);
+
+	    _this.renderCanvases = (0, _throttle2.default)(_this.renderCanvases.bind(_this), 30, { leading: true, trailing: true });
 
 	    _this.state = {
 	      crop: _this.nextCropState(props.crop),
 	      polygonId: _this.getRandomInt(1, 900000),
-	      zoom: 1
-	    };
+	      zoom: 1,
+	      mode: 'crop' };
 	    return _this;
 	  }
 
@@ -261,6 +270,11 @@ module.exports =
 
 	      e.preventDefault(); // Stop drag selection.
 
+	      if (this.state.mode === 'pan') {
+	        this.onPanMouseTouchDown(e);
+	        return;
+	      }
+
 	      var crop = this.props.keepSelection === true ? {} : this.state.crop;
 	      var clientPos = this.getClientPos(e);
 
@@ -348,8 +362,13 @@ module.exports =
 	    }
 	  }, {
 	    key: 'onDocMouseTouchEnd',
-	    value: function onDocMouseTouchEnd() {
+	    value: function onDocMouseTouchEnd(e) {
 	      if (this.props.disabled) {
+	        return;
+	      }
+
+	      if (this.state.mode === 'pan') {
+	        this.onPanMouseTouchEnd(e);
 	        return;
 	      }
 
@@ -361,11 +380,45 @@ module.exports =
 
 	        if (this.props.onComplete) {
 	          var zoomedCrop = this.zoomCrop(crop);
-	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop, this.getPixelCrop(zoomedCrop));
+	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop);
 	        }
 
 	        this.setState({ newCropIsBeingDrawn: false });
 	      }
+	    }
+	  }, {
+	    key: 'onPanMouseTouchDown',
+	    value: function onPanMouseTouchDown(e) {
+	      this.isPanning = true;
+	      this.panInitialState = this.panPosition ? _extends({}, this.panPosition) : { x: 0, y: 0 };
+	      this.panStartPosition = { x: e.clientX, y: e.clientY };
+	    }
+	  }, {
+	    key: 'onPanMouseTouchEnd',
+	    value: function onPanMouseTouchEnd(e) {
+	      this.isPanning = false;
+	      if (this.props.onComplete) {
+	        var crop = this.state.crop;
+
+	        var zoomedCrop = this.zoomCrop(crop);
+	        if (this.props.onComplete) {
+	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'onPanMouseMove',
+	    value: function onPanMouseMove(e) {
+	      if (this.state.mode !== 'pan') return;
+	      if (!this.isPanning) return;
+	      var diffX = e.clientX - this.panStartPosition.x;
+	      var diffY = e.clientY - this.panStartPosition.y;
+	      this.panPosition = {
+	        x: this.panInitialState.x + diffX,
+	        y: this.panInitialState.y + diffY
+	      };
+	      console.log(this.panPosition);
+	      this.renderCanvases();
 	    }
 	  }, {
 	    key: 'getPixelCrop',
@@ -660,8 +713,7 @@ module.exports =
 	      this.imageCanvasRef.height = imageEl.naturalHeight;
 	      this.imageCanvasRefBackground.width = imageEl.naturalWidth;
 	      this.imageCanvasRefBackground.height = imageEl.naturalHeight;
-	      this.drawOnCanvas(this.imageCanvasRef);
-	      this.drawOnCanvas(this.imageCanvasRefBackground);
+	      this.renderCanvases();
 
 	      // If there is a width or height then infer the other to
 	      // ensure the value is correct.
@@ -724,6 +776,8 @@ module.exports =
 	    key: 'zoomCrop',
 	    value: function zoomCrop(crop) {
 	      crop = this.getPixelCrop(crop);
+	      var _panPosition = this.panPosition,
+	          panPosition = _panPosition === undefined ? { x: 0, y: 0 } : _panPosition;
 	      var zoom = this.state.zoom;
 
 	      var image = this.imageRef;
@@ -742,11 +796,17 @@ module.exports =
 	      var xc = xnc / z;
 	      var yc = ync / z;
 	      console.log(JSON.stringify({ zoom: zoom, crop: crop, xnl: xnl, ynl: ynl, dx: dx, dy: dy, xnc: xnc, ync: ync, xc: xc, yc: yc }, null, 2));
-	      var x = xc;
-	      var y = yc;
+	      var x = xc - panPosition.x;
+	      var y = yc - panPosition.y;
 	      var width = crop.width / zoom;
 	      var height = crop.height / zoom;
 	      return { x: x, y: y, width: width, height: height, aspect: crop.aspect };
+	    }
+	  }, {
+	    key: 'renderCanvases',
+	    value: function renderCanvases() {
+	      this.drawOnCanvas(this.imageCanvasRef);
+	      this.drawOnCanvas(this.imageCanvasRefBackground);
 	    }
 	  }, {
 	    key: 'drawOnCanvas',
@@ -755,6 +815,8 @@ module.exports =
 	      var zoom = this.state.zoom;
 	      var naturalWidth = img.naturalWidth,
 	          naturalHeight = img.naturalHeight;
+	      var _panPosition2 = this.panPosition,
+	          panPosition = _panPosition2 === undefined ? { x: 0, y: 0 } : _panPosition2;
 
 	      var ctx = canvasElement.getContext('2d');
 
@@ -768,7 +830,7 @@ module.exports =
 	      ctx.translate(xOffset, yOffset);
 	      ctx.scale(zoom, zoom);
 
-	      ctx.drawImage(this.imageRef, -xOffset, -yOffset, canvasElement.width, canvasElement.height);
+	      ctx.drawImage(this.imageRef, -xOffset + panPosition.x, -yOffset + panPosition.y, canvasElement.width, canvasElement.height);
 	      ctx.restore();
 	    }
 	  }, {
@@ -967,7 +1029,8 @@ module.exports =
 	          onTouchStart: this.onComponentMouseTouchDown,
 	          onMouseDown: this.onComponentMouseTouchDown,
 	          tabIndex: '1',
-	          onKeyDown: this.onComponentKeyDown
+	          onKeyDown: this.onComponentKeyDown,
+	          style: { position: 'relative' }
 	        },
 	        this.renderSvg(),
 	        _react2.default.createElement('img', {
@@ -1011,15 +1074,69 @@ module.exports =
 	          cropSelection
 	        ),
 	        _react2.default.createElement('div', {
-	          className: 'ReactCrop--event-target',
+	          className: 'ReactCrop--event-target ReactCrop--event-target--' + this.state.mode,
 	          onWheel: this.onWheel,
 	          onMouseOver: this.onMouseOver,
 	          onMouseOut: this.onMouseOut,
+	          onMouseMove: this.onPanMouseMove,
 	          ref: function ref(_ref) {
 	            return _this6.eventTargetRef = _ref;
 	          }
 	        }),
-	        this.props.children
+	        this.props.children,
+	        _react2.default.createElement(
+	          'div',
+	          { style: { position: 'absolute', bottom: '3px', right: '3px' } },
+	          this.renderModeButtons()
+	        )
+	      );
+	    }
+	  }, {
+	    key: 'renderModeButtons',
+	    value: function renderModeButtons() {
+	      var _this7 = this;
+
+	      var mode = this.state.mode;
+
+	      var buttonStyle = {
+	        display: 'inline-block',
+	        padding: '0.25em 0.5em',
+	        marginLeft: '3px',
+	        background: 'white',
+	        color: '#444',
+	        fontFamily: 'Arial',
+	        textAlign: 'center',
+	        cursor: 'pointer'
+	      };
+
+	      var inactiveOpacity = '0.75';
+	      var cropButtonStyle = _extends({}, buttonStyle, {
+	        opacity: inactiveOpacity
+	      });
+	      var panButtonStyle = _extends({}, buttonStyle, {
+	        opacity: inactiveOpacity
+	      });
+
+	      if (mode === 'crop') cropButtonStyle.opacity = '1';
+	      if (mode === 'pan') panButtonStyle.opacity = '1';
+
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	          'div',
+	          { style: cropButtonStyle, onClick: function onClick() {
+	              return _this7.setState({ mode: 'crop' });
+	            } },
+	          'Crop'
+	        ),
+	        _react2.default.createElement(
+	          'div',
+	          { style: panButtonStyle, onClick: function onClick() {
+	              return _this7.setState({ mode: 'pan' });
+	            } },
+	          'Pan'
+	        )
 	      );
 	    }
 	  }]);
@@ -1087,11 +1204,640 @@ module.exports =
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var debounce = __webpack_require__(4),
+	    isObject = __webpack_require__(5);
+
+	/** Error message constants. */
+	var FUNC_ERROR_TEXT = 'Expected a function';
+
+	/**
+	 * Creates a throttled function that only invokes `func` at most once per
+	 * every `wait` milliseconds. The throttled function comes with a `cancel`
+	 * method to cancel delayed `func` invocations and a `flush` method to
+	 * immediately invoke them. Provide `options` to indicate whether `func`
+	 * should be invoked on the leading and/or trailing edge of the `wait`
+	 * timeout. The `func` is invoked with the last arguments provided to the
+	 * throttled function. Subsequent calls to the throttled function return the
+	 * result of the last `func` invocation.
+	 *
+	 * **Note:** If `leading` and `trailing` options are `true`, `func` is
+	 * invoked on the trailing edge of the timeout only if the throttled function
+	 * is invoked more than once during the `wait` timeout.
+	 *
+	 * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
+	 * until to the next tick, similar to `setTimeout` with a timeout of `0`.
+	 *
+	 * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
+	 * for details over the differences between `_.throttle` and `_.debounce`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Function
+	 * @param {Function} func The function to throttle.
+	 * @param {number} [wait=0] The number of milliseconds to throttle invocations to.
+	 * @param {Object} [options={}] The options object.
+	 * @param {boolean} [options.leading=true]
+	 *  Specify invoking on the leading edge of the timeout.
+	 * @param {boolean} [options.trailing=true]
+	 *  Specify invoking on the trailing edge of the timeout.
+	 * @returns {Function} Returns the new throttled function.
+	 * @example
+	 *
+	 * // Avoid excessively updating the position while scrolling.
+	 * jQuery(window).on('scroll', _.throttle(updatePosition, 100));
+	 *
+	 * // Invoke `renewToken` when the click event is fired, but not more than once every 5 minutes.
+	 * var throttled = _.throttle(renewToken, 300000, { 'trailing': false });
+	 * jQuery(element).on('click', throttled);
+	 *
+	 * // Cancel the trailing throttled invocation.
+	 * jQuery(window).on('popstate', throttled.cancel);
+	 */
+	function throttle(func, wait, options) {
+	  var leading = true,
+	      trailing = true;
+
+	  if (typeof func != 'function') {
+	    throw new TypeError(FUNC_ERROR_TEXT);
+	  }
+	  if (isObject(options)) {
+	    leading = 'leading' in options ? !!options.leading : leading;
+	    trailing = 'trailing' in options ? !!options.trailing : trailing;
+	  }
+	  return debounce(func, wait, {
+	    'leading': leading,
+	    'maxWait': wait,
+	    'trailing': trailing
+	  });
+	}
+
+	module.exports = throttle;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isObject = __webpack_require__(5),
+	    now = __webpack_require__(6),
+	    toNumber = __webpack_require__(9);
+
+	/** Error message constants. */
+	var FUNC_ERROR_TEXT = 'Expected a function';
+
+	/* Built-in method references for those with the same name as other `lodash` methods. */
+	var nativeMax = Math.max,
+	    nativeMin = Math.min;
+
+	/**
+	 * Creates a debounced function that delays invoking `func` until after `wait`
+	 * milliseconds have elapsed since the last time the debounced function was
+	 * invoked. The debounced function comes with a `cancel` method to cancel
+	 * delayed `func` invocations and a `flush` method to immediately invoke them.
+	 * Provide `options` to indicate whether `func` should be invoked on the
+	 * leading and/or trailing edge of the `wait` timeout. The `func` is invoked
+	 * with the last arguments provided to the debounced function. Subsequent
+	 * calls to the debounced function return the result of the last `func`
+	 * invocation.
+	 *
+	 * **Note:** If `leading` and `trailing` options are `true`, `func` is
+	 * invoked on the trailing edge of the timeout only if the debounced function
+	 * is invoked more than once during the `wait` timeout.
+	 *
+	 * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
+	 * until to the next tick, similar to `setTimeout` with a timeout of `0`.
+	 *
+	 * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
+	 * for details over the differences between `_.debounce` and `_.throttle`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Function
+	 * @param {Function} func The function to debounce.
+	 * @param {number} [wait=0] The number of milliseconds to delay.
+	 * @param {Object} [options={}] The options object.
+	 * @param {boolean} [options.leading=false]
+	 *  Specify invoking on the leading edge of the timeout.
+	 * @param {number} [options.maxWait]
+	 *  The maximum time `func` is allowed to be delayed before it's invoked.
+	 * @param {boolean} [options.trailing=true]
+	 *  Specify invoking on the trailing edge of the timeout.
+	 * @returns {Function} Returns the new debounced function.
+	 * @example
+	 *
+	 * // Avoid costly calculations while the window size is in flux.
+	 * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
+	 *
+	 * // Invoke `sendMail` when clicked, debouncing subsequent calls.
+	 * jQuery(element).on('click', _.debounce(sendMail, 300, {
+	 *   'leading': true,
+	 *   'trailing': false
+	 * }));
+	 *
+	 * // Ensure `batchLog` is invoked once after 1 second of debounced calls.
+	 * var debounced = _.debounce(batchLog, 250, { 'maxWait': 1000 });
+	 * var source = new EventSource('/stream');
+	 * jQuery(source).on('message', debounced);
+	 *
+	 * // Cancel the trailing debounced invocation.
+	 * jQuery(window).on('popstate', debounced.cancel);
+	 */
+	function debounce(func, wait, options) {
+	  var lastArgs,
+	      lastThis,
+	      maxWait,
+	      result,
+	      timerId,
+	      lastCallTime,
+	      lastInvokeTime = 0,
+	      leading = false,
+	      maxing = false,
+	      trailing = true;
+
+	  if (typeof func != 'function') {
+	    throw new TypeError(FUNC_ERROR_TEXT);
+	  }
+	  wait = toNumber(wait) || 0;
+	  if (isObject(options)) {
+	    leading = !!options.leading;
+	    maxing = 'maxWait' in options;
+	    maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
+	    trailing = 'trailing' in options ? !!options.trailing : trailing;
+	  }
+
+	  function invokeFunc(time) {
+	    var args = lastArgs,
+	        thisArg = lastThis;
+
+	    lastArgs = lastThis = undefined;
+	    lastInvokeTime = time;
+	    result = func.apply(thisArg, args);
+	    return result;
+	  }
+
+	  function leadingEdge(time) {
+	    // Reset any `maxWait` timer.
+	    lastInvokeTime = time;
+	    // Start the timer for the trailing edge.
+	    timerId = setTimeout(timerExpired, wait);
+	    // Invoke the leading edge.
+	    return leading ? invokeFunc(time) : result;
+	  }
+
+	  function remainingWait(time) {
+	    var timeSinceLastCall = time - lastCallTime,
+	        timeSinceLastInvoke = time - lastInvokeTime,
+	        result = wait - timeSinceLastCall;
+
+	    return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
+	  }
+
+	  function shouldInvoke(time) {
+	    var timeSinceLastCall = time - lastCallTime,
+	        timeSinceLastInvoke = time - lastInvokeTime;
+
+	    // Either this is the first call, activity has stopped and we're at the
+	    // trailing edge, the system time has gone backwards and we're treating
+	    // it as the trailing edge, or we've hit the `maxWait` limit.
+	    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+	      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
+	  }
+
+	  function timerExpired() {
+	    var time = now();
+	    if (shouldInvoke(time)) {
+	      return trailingEdge(time);
+	    }
+	    // Restart the timer.
+	    timerId = setTimeout(timerExpired, remainingWait(time));
+	  }
+
+	  function trailingEdge(time) {
+	    timerId = undefined;
+
+	    // Only invoke if we have `lastArgs` which means `func` has been
+	    // debounced at least once.
+	    if (trailing && lastArgs) {
+	      return invokeFunc(time);
+	    }
+	    lastArgs = lastThis = undefined;
+	    return result;
+	  }
+
+	  function cancel() {
+	    if (timerId !== undefined) {
+	      clearTimeout(timerId);
+	    }
+	    lastInvokeTime = 0;
+	    lastArgs = lastCallTime = lastThis = timerId = undefined;
+	  }
+
+	  function flush() {
+	    return timerId === undefined ? result : trailingEdge(now());
+	  }
+
+	  function debounced() {
+	    var time = now(),
+	        isInvoking = shouldInvoke(time);
+
+	    lastArgs = arguments;
+	    lastThis = this;
+	    lastCallTime = time;
+
+	    if (isInvoking) {
+	      if (timerId === undefined) {
+	        return leadingEdge(lastCallTime);
+	      }
+	      if (maxing) {
+	        // Handle invocations in a tight loop.
+	        timerId = setTimeout(timerExpired, wait);
+	        return invokeFunc(lastCallTime);
+	      }
+	    }
+	    if (timerId === undefined) {
+	      timerId = setTimeout(timerExpired, wait);
+	    }
+	    return result;
+	  }
+	  debounced.cancel = cancel;
+	  debounced.flush = flush;
+	  return debounced;
+	}
+
+	module.exports = debounce;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	/**
+	 * Checks if `value` is the
+	 * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
+	 * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+	 * @example
+	 *
+	 * _.isObject({});
+	 * // => true
+	 *
+	 * _.isObject([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isObject(_.noop);
+	 * // => true
+	 *
+	 * _.isObject(null);
+	 * // => false
+	 */
+	function isObject(value) {
+	  var type = typeof value;
+	  return value != null && (type == 'object' || type == 'function');
+	}
+
+	module.exports = isObject;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var root = __webpack_require__(7);
+
+	/**
+	 * Gets the timestamp of the number of milliseconds that have elapsed since
+	 * the Unix epoch (1 January 1970 00:00:00 UTC).
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 2.4.0
+	 * @category Date
+	 * @returns {number} Returns the timestamp.
+	 * @example
+	 *
+	 * _.defer(function(stamp) {
+	 *   console.log(_.now() - stamp);
+	 * }, _.now());
+	 * // => Logs the number of milliseconds it took for the deferred invocation.
+	 */
+	var now = function() {
+	  return root.Date.now();
+	};
+
+	module.exports = now;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var freeGlobal = __webpack_require__(8);
+
+	/** Detect free variable `self`. */
+	var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+	/** Used as a reference to the global object. */
+	var root = freeGlobal || freeSelf || Function('return this')();
+
+	module.exports = root;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {/** Detect free variable `global` from Node.js. */
+	var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
+
+	module.exports = freeGlobal;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isObject = __webpack_require__(5),
+	    isSymbol = __webpack_require__(10);
+
+	/** Used as references for various `Number` constants. */
+	var NAN = 0 / 0;
+
+	/** Used to match leading and trailing whitespace. */
+	var reTrim = /^\s+|\s+$/g;
+
+	/** Used to detect bad signed hexadecimal string values. */
+	var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
+
+	/** Used to detect binary string values. */
+	var reIsBinary = /^0b[01]+$/i;
+
+	/** Used to detect octal string values. */
+	var reIsOctal = /^0o[0-7]+$/i;
+
+	/** Built-in method references without a dependency on `root`. */
+	var freeParseInt = parseInt;
+
+	/**
+	 * Converts `value` to a number.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to process.
+	 * @returns {number} Returns the number.
+	 * @example
+	 *
+	 * _.toNumber(3.2);
+	 * // => 3.2
+	 *
+	 * _.toNumber(Number.MIN_VALUE);
+	 * // => 5e-324
+	 *
+	 * _.toNumber(Infinity);
+	 * // => Infinity
+	 *
+	 * _.toNumber('3.2');
+	 * // => 3.2
+	 */
+	function toNumber(value) {
+	  if (typeof value == 'number') {
+	    return value;
+	  }
+	  if (isSymbol(value)) {
+	    return NAN;
+	  }
+	  if (isObject(value)) {
+	    var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
+	    value = isObject(other) ? (other + '') : other;
+	  }
+	  if (typeof value != 'string') {
+	    return value === 0 ? value : +value;
+	  }
+	  value = value.replace(reTrim, '');
+	  var isBinary = reIsBinary.test(value);
+	  return (isBinary || reIsOctal.test(value))
+	    ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
+	    : (reIsBadHex.test(value) ? NAN : +value);
+	}
+
+	module.exports = toNumber;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseGetTag = __webpack_require__(11),
+	    isObjectLike = __webpack_require__(15);
+
+	/** `Object#toString` result references. */
+	var symbolTag = '[object Symbol]';
+
+	/**
+	 * Checks if `value` is classified as a `Symbol` primitive or object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
+	 * @example
+	 *
+	 * _.isSymbol(Symbol.iterator);
+	 * // => true
+	 *
+	 * _.isSymbol('abc');
+	 * // => false
+	 */
+	function isSymbol(value) {
+	  return typeof value == 'symbol' ||
+	    (isObjectLike(value) && baseGetTag(value) == symbolTag);
+	}
+
+	module.exports = isSymbol;
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Symbol = __webpack_require__(12),
+	    getRawTag = __webpack_require__(13),
+	    objectToString = __webpack_require__(14);
+
+	/** `Object#toString` result references. */
+	var nullTag = '[object Null]',
+	    undefinedTag = '[object Undefined]';
+
+	/** Built-in value references. */
+	var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
+
+	/**
+	 * The base implementation of `getTag` without fallbacks for buggy environments.
+	 *
+	 * @private
+	 * @param {*} value The value to query.
+	 * @returns {string} Returns the `toStringTag`.
+	 */
+	function baseGetTag(value) {
+	  if (value == null) {
+	    return value === undefined ? undefinedTag : nullTag;
+	  }
+	  return (symToStringTag && symToStringTag in Object(value))
+	    ? getRawTag(value)
+	    : objectToString(value);
+	}
+
+	module.exports = baseGetTag;
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var root = __webpack_require__(7);
+
+	/** Built-in value references. */
+	var Symbol = root.Symbol;
+
+	module.exports = Symbol;
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Symbol = __webpack_require__(12);
+
+	/** Used for built-in method references. */
+	var objectProto = Object.prototype;
+
+	/** Used to check objects for own properties. */
+	var hasOwnProperty = objectProto.hasOwnProperty;
+
+	/**
+	 * Used to resolve the
+	 * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+	 * of values.
+	 */
+	var nativeObjectToString = objectProto.toString;
+
+	/** Built-in value references. */
+	var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
+
+	/**
+	 * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
+	 *
+	 * @private
+	 * @param {*} value The value to query.
+	 * @returns {string} Returns the raw `toStringTag`.
+	 */
+	function getRawTag(value) {
+	  var isOwn = hasOwnProperty.call(value, symToStringTag),
+	      tag = value[symToStringTag];
+
+	  try {
+	    value[symToStringTag] = undefined;
+	    var unmasked = true;
+	  } catch (e) {}
+
+	  var result = nativeObjectToString.call(value);
+	  if (unmasked) {
+	    if (isOwn) {
+	      value[symToStringTag] = tag;
+	    } else {
+	      delete value[symToStringTag];
+	    }
+	  }
+	  return result;
+	}
+
+	module.exports = getRawTag;
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	/** Used for built-in method references. */
+	var objectProto = Object.prototype;
+
+	/**
+	 * Used to resolve the
+	 * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+	 * of values.
+	 */
+	var nativeObjectToString = objectProto.toString;
+
+	/**
+	 * Converts `value` to a string using `Object.prototype.toString`.
+	 *
+	 * @private
+	 * @param {*} value The value to convert.
+	 * @returns {string} Returns the converted string.
+	 */
+	function objectToString(value) {
+	  return nativeObjectToString.call(value);
+	}
+
+	module.exports = objectToString;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	/**
+	 * Checks if `value` is object-like. A value is object-like if it's not `null`
+	 * and has a `typeof` result of "object".
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+	 * @example
+	 *
+	 * _.isObjectLike({});
+	 * // => true
+	 *
+	 * _.isObjectLike([1, 2, 3]);
+	 * // => true
+	 *
+	 * _.isObjectLike(_.noop);
+	 * // => false
+	 *
+	 * _.isObjectLike(null);
+	 * // => false
+	 */
+	function isObjectLike(value) {
+	  return value != null && typeof value == 'object';
+	}
+
+	module.exports = isObjectLike;
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 
-	var Vector = __webpack_require__(4)
-	  , Float32Vector = __webpack_require__(5)
-	  , ObjectVector = __webpack_require__(10);
+	var Vector = __webpack_require__(17)
+	  , Float32Vector = __webpack_require__(18)
+	  , ObjectVector = __webpack_require__(23);
 
 	module.exports = {
 	  ArrayVector: Vector,
@@ -1103,7 +1849,7 @@ module.exports =
 
 
 /***/ },
-/* 4 */
+/* 17 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1504,13 +2250,13 @@ module.exports =
 
 
 /***/ },
-/* 5 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var util = __webpack_require__(6)
-	  , Vector = __webpack_require__(4);
+	var util = __webpack_require__(19)
+	  , Vector = __webpack_require__(17);
 
 	function Float32Vector(x, y) {
 	  if (this instanceof Float32Vector === false) {
@@ -1529,7 +2275,7 @@ module.exports =
 
 
 /***/ },
-/* 6 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -2057,7 +2803,7 @@ module.exports =
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(8);
+	exports.isBuffer = __webpack_require__(21);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -2101,7 +2847,7 @@ module.exports =
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(9);
+	exports.inherits = __webpack_require__(22);
 
 	exports._extend = function(origin, add) {
 	  // Don't do anything if add isn't an object
@@ -2119,10 +2865,10 @@ module.exports =
 	  return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(20)))
 
 /***/ },
-/* 7 */
+/* 20 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -2308,7 +3054,7 @@ module.exports =
 
 
 /***/ },
-/* 8 */
+/* 21 */
 /***/ function(module, exports) {
 
 	module.exports = function isBuffer(arg) {
@@ -2319,7 +3065,7 @@ module.exports =
 	}
 
 /***/ },
-/* 9 */
+/* 22 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -2348,13 +3094,13 @@ module.exports =
 
 
 /***/ },
-/* 10 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var util = __webpack_require__(6)
-	  , Vector = __webpack_require__(4);
+	var util = __webpack_require__(19)
+	  , Vector = __webpack_require__(17);
 
 	function ObjectVector(x, y) {
 	  if (this instanceof ObjectVector === false) {
