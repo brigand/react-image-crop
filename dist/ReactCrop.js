@@ -317,6 +317,15 @@ module.exports =
 	    value: function onComponentKeyDown(e) {
 	      var _this3 = this;
 
+	      if (e.key === 'Escape') {
+	        var _crop = { x: 0, y: 0, width: 0, height: 0 };
+	        var zoomedCrop = this.zoomCrop(_crop);
+	        this.setState({ crop: _crop });
+	        if (this.props.onComplete) {
+	          this.props.onComplete(_crop, this.getPixelCrop(_crop), zoomedCrop);
+	        }
+	        return;
+	      }
 	      if (this.props.disabled) {
 	        return;
 	      }

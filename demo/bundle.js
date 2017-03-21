@@ -74,6 +74,8 @@
 	 */
 	var cropEditor = document.querySelector('#crop-editor');
 
+	var VERBOSE = false;
+
 	function loadEditView(url) {
 	  var Parent = function (_Component) {
 	    _inherits(Parent, _Component);
@@ -98,7 +100,10 @@
 	    _createClass(Parent, [{
 	      key: 'onCropChange',
 	      value: function onCropChange(crop) {
-	        console.debug(crop);
+	        if (VERBOSE) {
+	          console.debug(crop);
+	        }
+	        this.setState({ crop: crop });
 	      }
 	    }, {
 	      key: 'onImageLoaded',
@@ -132,8 +137,8 @@
 	            crop: this.state.crop,
 	            src: url,
 	            onImageLoaded: this.onImageLoaded.bind(this),
-	            onComplete: this.onCropComplete.bind(this)
-	            // onChange={this.onCropChange}
+	            onComplete: this.onCropComplete.bind(this),
+	            onChange: this.onCropChange.bind(this)
 	          }),
 	          _react2.default.createElement('canvas', { width: '100', height: '100', ref: 'canvas', style: { boder: '10px solid red', width: '100%' } })
 	        );

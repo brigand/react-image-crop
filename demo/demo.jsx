@@ -7,6 +7,8 @@ import ReactCrop from '../lib/ReactCrop';
  */
 const cropEditor = document.querySelector('#crop-editor');
 
+const VERBOSE = false;
+
 function loadEditView(url) {
   class Parent extends Component {
     constructor() {
@@ -23,7 +25,10 @@ function loadEditView(url) {
     }
 
     onCropChange(crop) {
-      console.debug(crop);
+      if (VERBOSE) {
+        console.debug(crop);
+      }
+      this.setState({crop});
     }
 
     onImageLoaded(crop) {
@@ -63,7 +68,7 @@ function loadEditView(url) {
             src={url}
             onImageLoaded={this.onImageLoaded.bind(this)}
             onComplete={this.onCropComplete.bind(this)}
-            // onChange={this.onCropChange}
+            onChange={this.onCropChange.bind(this)}
           />
           {/* <pre>{JSON.stringify(this.state.crop, null, 2)}</pre> */}
           <canvas width="100" height="100" ref="canvas" style={{boder: '10px solid red', width: '100%'}}></canvas>
