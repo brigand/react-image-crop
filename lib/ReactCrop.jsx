@@ -286,7 +286,7 @@ class ReactCrop extends Component {
 
   onComponentKeyDown(e) {
     if (e.key === 'Escape') {
-      const crop = {x: 0, y: 0, width: 0, height: 0};
+      const crop = {x: 0, y: 0, width: 100, height: 100};
       const zoomedCrop = this.zoomCrop(crop);
       this.setState({crop});
       if (this.props.onComplete) {
@@ -366,10 +366,17 @@ class ReactCrop extends Component {
       this.mouseDownOnCrop = false;
 
       if (this.props.onComplete) {
-        const zoomedCrop = this.zoomCrop(crop);
+        const crop2 = Object.assign({}, crop);
+        if (!crop2.width) {
+          crop2.x = 0;
+          crop2.y = 0;
+          crop2.width = 100;
+          crop2.height = 100;
+        }
+        const zoomedCrop = this.zoomCrop(crop2);
         this.props.onComplete(
-          crop,
-          this.getPixelCrop(crop),
+          crop2,
+          this.getPixelCrop(crop2),
           zoomedCrop,
         );
       }

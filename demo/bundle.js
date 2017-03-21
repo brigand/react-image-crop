@@ -21842,7 +21842,7 @@
 	      var _this3 = this;
 
 	      if (e.key === 'Escape') {
-	        var _crop = { x: 0, y: 0, width: 0, height: 0 };
+	        var _crop = { x: 0, y: 0, width: 100, height: 100 };
 	        var zoomedCrop = this.zoomCrop(_crop);
 	        this.setState({ crop: _crop });
 	        if (this.props.onComplete) {
@@ -21912,8 +21912,15 @@
 	        this.mouseDownOnCrop = false;
 
 	        if (this.props.onComplete) {
-	          var zoomedCrop = this.zoomCrop(crop);
-	          this.props.onComplete(crop, this.getPixelCrop(crop), zoomedCrop);
+	          var crop2 = Object.assign({}, crop);
+	          if (!crop2.width) {
+	            crop2.x = 0;
+	            crop2.y = 0;
+	            crop2.width = 100;
+	            crop2.height = 100;
+	          }
+	          var zoomedCrop = this.zoomCrop(crop2);
+	          this.props.onComplete(crop2, this.getPixelCrop(crop2), zoomedCrop);
 	        }
 
 	        this.setState({ newCropIsBeingDrawn: false });
