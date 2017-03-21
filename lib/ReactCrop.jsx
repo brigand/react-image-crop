@@ -285,6 +285,19 @@ class ReactCrop extends Component {
   }
 
   onComponentKeyDown(e) {
+    if (e.key === 'Escape') {
+      const crop = {x: 0, y: 0, width: 0, height: 0};
+      const zoomedCrop = this.zoomCrop(crop);
+      this.setState({crop});
+      if (this.props.onComplete) {
+        this.props.onComplete(
+          crop,
+          this.getPixelCrop(crop),
+          zoomedCrop,
+        );
+      }
+      return;
+    }
     if (this.props.disabled) {
       return;
     }
