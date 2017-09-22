@@ -62,7 +62,7 @@ function loadEditView(url) {
 
     render() {
       return (
-        <div style={{width: '40%', margin: '1em auto'}}>
+        <div style={{width: '20%', margin: '1em auto', transform: 'scale(1.5) translateY(50%)'}}>
           <ReactCrop
             crop={this.state.crop}
             src={url}

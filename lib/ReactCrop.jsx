@@ -136,6 +136,11 @@ class ReactCrop extends Component {
     window.removeEventListener('scroll', this.onWindowScroll, false);
   }
 
+  getScale() {
+    const rect = this.imageRef.getBoundingClientRect();
+    return this.imageRef.width / (rect.right - rect.left);
+  }
+
   onDocMouseTouchMove(e) {
     if (this.props.disabled) {
       return;
@@ -155,10 +160,11 @@ class ReactCrop extends Component {
       clientPos.y = this.straightenYPath(clientPos.x);
     }
 
-    const xDiffPx = clientPos.x - evData.clientStartX;
+    const scale = this.getScale();
+    const xDiffPx = (clientPos.x - evData.clientStartX) * scale;
     evData.xDiffPc = (xDiffPx / evData.imageWidth) * 100;
 
-    const yDiffPx = clientPos.y - evData.clientStartY;
+    const yDiffPx = (clientPos.y - evData.clientStartY) * scale;
     evData.yDiffPc = (yDiffPx / evData.imageHeight) * 100;
 
     if (evData.isResize) {
@@ -253,8 +259,8 @@ class ReactCrop extends Component {
     this.componentRef.focus();
 
     const imageOffset = this.getElementOffset(this.imageRef);
-    const xPc = ((clientPos.x - imageOffset.left) / this.imageRef.width) * 100;
-    const yPc = ((clientPos.y - imageOffset.top) / this.imageRef.height) * 100;
+    const xPc = ((clientPos.x - imageOffset.left) / imageOffset.width) * 100;
+    const yPc = ((clientPos.y - imageOffset.top) / imageOffset.height) * 100;
 
     crop.x = xPc;
     crop.y = yPc;
@@ -415,7 +421,6 @@ class ReactCrop extends Component {
       x: this.panInitialState.x + diffX,
       y: this.panInitialState.y + diffY,
     };
-    console.log(this.panPosition);
     this.renderCanvases();
   }
 
@@ -508,6 +513,8 @@ class ReactCrop extends Component {
     return {
       top: rectTop,
       left: rectLeft,
+      width: rect.right - rect.left,
+      height: rect.bottom - rect.top,
     };
   }
 
@@ -761,7 +768,6 @@ class ReactCrop extends Component {
     const ync = crop.y + dy;
     const xc = xnc / z;
     const yc = ync / z;
-    console.log(JSON.stringify({zoom, crop, xnl, ynl, dx, dy, xnc, ync, xc, yc}, null, 2))
     const x = xc - panPosition.x;
     const y = yc - panPosition.y;
     const width = crop.width / zoom;

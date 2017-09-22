@@ -132,7 +132,7 @@
 	      value: function render() {
 	        return _react2.default.createElement(
 	          'div',
-	          { style: { width: '40%', margin: '1em auto' } },
+	          { style: { width: '20%', margin: '1em auto', transform: 'scale(1.5) translateY(50%)' } },
 	          _react2.default.createElement(_ReactCrop2.default, {
 	            crop: this.state.crop,
 	            src: url,
@@ -21691,6 +21691,12 @@
 	      window.removeEventListener('scroll', this.onWindowScroll, false);
 	    }
 	  }, {
+	    key: 'getScale',
+	    value: function getScale() {
+	      var rect = this.imageRef.getBoundingClientRect();
+	      return this.imageRef.width / (rect.right - rect.left);
+	    }
+	  }, {
 	    key: 'onDocMouseTouchMove',
 	    value: function onDocMouseTouchMove(e) {
 	      if (this.props.disabled) {
@@ -21712,10 +21718,11 @@
 	        clientPos.y = this.straightenYPath(clientPos.x);
 	      }
 
-	      var xDiffPx = clientPos.x - evData.clientStartX;
+	      var scale = this.getScale();
+	      var xDiffPx = (clientPos.x - evData.clientStartX) * scale;
 	      evData.xDiffPc = xDiffPx / evData.imageWidth * 100;
 
-	      var yDiffPx = clientPos.y - evData.clientStartY;
+	      var yDiffPx = (clientPos.y - evData.clientStartY) * scale;
 	      evData.yDiffPc = yDiffPx / evData.imageHeight * 100;
 
 	      if (evData.isResize) {
@@ -21806,8 +21813,8 @@
 	      this.componentRef.focus();
 
 	      var imageOffset = this.getElementOffset(this.imageRef);
-	      var xPc = (clientPos.x - imageOffset.left) / this.imageRef.width * 100;
-	      var yPc = (clientPos.y - imageOffset.top) / this.imageRef.height * 100;
+	      var xPc = (clientPos.x - imageOffset.left) / imageOffset.width * 100;
+	      var yPc = (clientPos.y - imageOffset.top) / imageOffset.height * 100;
 
 	      crop.x = xPc;
 	      crop.y = yPc;
@@ -21957,7 +21964,6 @@
 	        x: this.panInitialState.x + diffX,
 	        y: this.panInitialState.y + diffY
 	      };
-	      console.log(this.panPosition);
 	      this.renderCanvases();
 	    }
 	  }, {
@@ -22066,7 +22072,9 @@
 
 	      return {
 	        top: rectTop,
-	        left: rectLeft
+	        left: rectLeft,
+	        width: rect.right - rect.left,
+	        height: rect.bottom - rect.top
 	      };
 	    }
 	  }, {
@@ -22335,7 +22343,6 @@
 	      var ync = crop.y + dy;
 	      var xc = xnc / z;
 	      var yc = ync / z;
-	      console.log(JSON.stringify({ zoom: zoom, crop: crop, xnl: xnl, ynl: ynl, dx: dx, dy: dy, xnc: xnc, ync: ync, xc: xc, yc: yc }, null, 2));
 	      var x = xc - panPosition.x;
 	      var y = yc - panPosition.y;
 	      var width = crop.width / zoom;
