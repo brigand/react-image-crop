@@ -167,6 +167,12 @@ module.exports =
 	      window.removeEventListener('scroll', this.onWindowScroll, false);
 	    }
 	  }, {
+	    key: 'getScale',
+	    value: function getScale() {
+	      var rect = this.imageRef.getBoundingClientRect();
+	      return this.imageRef.width / (rect.right - rect.left);
+	    }
+	  }, {
 	    key: 'onDocMouseTouchMove',
 	    value: function onDocMouseTouchMove(e) {
 	      if (this.props.disabled) {
@@ -188,10 +194,11 @@ module.exports =
 	        clientPos.y = this.straightenYPath(clientPos.x);
 	      }
 
-	      var xDiffPx = clientPos.x - evData.clientStartX;
+	      var scale = this.getScale();
+	      var xDiffPx = (clientPos.x - evData.clientStartX) * scale;
 	      evData.xDiffPc = xDiffPx / evData.imageWidth * 100;
 
-	      var yDiffPx = clientPos.y - evData.clientStartY;
+	      var yDiffPx = (clientPos.y - evData.clientStartY) * scale;
 	      evData.yDiffPc = yDiffPx / evData.imageHeight * 100;
 
 	      if (evData.isResize) {
@@ -282,8 +289,8 @@ module.exports =
 	      this.componentRef.focus();
 
 	      var imageOffset = this.getElementOffset(this.imageRef);
-	      var xPc = (clientPos.x - imageOffset.left) / this.imageRef.width * 100;
-	      var yPc = (clientPos.y - imageOffset.top) / this.imageRef.height * 100;
+	      var xPc = (clientPos.x - imageOffset.left) / imageOffset.width * 100;
+	      var yPc = (clientPos.y - imageOffset.top) / imageOffset.height * 100;
 
 	      crop.x = xPc;
 	      crop.y = yPc;
@@ -433,7 +440,6 @@ module.exports =
 	        x: this.panInitialState.x + diffX,
 	        y: this.panInitialState.y + diffY
 	      };
-	      console.log(this.panPosition);
 	      this.renderCanvases();
 	    }
 	  }, {
@@ -542,7 +548,9 @@ module.exports =
 
 	      return {
 	        top: rectTop,
-	        left: rectLeft
+	        left: rectLeft,
+	        width: rect.right - rect.left,
+	        height: rect.bottom - rect.top
 	      };
 	    }
 	  }, {
@@ -811,7 +819,6 @@ module.exports =
 	      var ync = crop.y + dy;
 	      var xc = xnc / z;
 	      var yc = ync / z;
-	      console.log(JSON.stringify({ zoom: zoom, crop: crop, xnl: xnl, ynl: ynl, dx: dx, dy: dy, xnc: xnc, ync: ync, xc: xc, yc: yc }, null, 2));
 	      var x = xc - panPosition.x;
 	      var y = yc - panPosition.y;
 	      var width = crop.width / zoom;
@@ -1102,7 +1109,7 @@ module.exports =
 	        this.props.children,
 	        _react2.default.createElement(
 	          'div',
-	          { style: { position: 'absolute', bottom: '3px', right: '3px' } },
+	          { style: _extends({ position: 'absolute', bottom: '3px', right: '3px' }, this.props.buttonContainerStyle) },
 	          this.renderModeButtons()
 	        )
 	      );
@@ -1175,7 +1182,8 @@ module.exports =
 	  disabled: _react.PropTypes.bool,
 	  ellipse: _react.PropTypes.bool,
 	  crossorigin: _react.PropTypes.string,
-	  children: _react2.default.PropTypes.oneOfType([_react2.default.PropTypes.arrayOf(_react2.default.PropTypes.node), _react2.default.PropTypes.node])
+	  children: _react2.default.PropTypes.oneOfType([_react2.default.PropTypes.arrayOf(_react2.default.PropTypes.node), _react2.default.PropTypes.node]),
+	  buttonContainerStyle: _react2.default.PropTypes.object
 	};
 	ReactCrop.defaultProps = {
 	  disabled: false,

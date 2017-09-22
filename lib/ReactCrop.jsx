@@ -27,6 +27,7 @@ class ReactCrop extends Component {
       React.PropTypes.arrayOf(React.PropTypes.node),
       React.PropTypes.node,
     ]),
+    buttonContainerStyle: React.PropTypes.object,
   }
 
   static defaultProps = {
@@ -1035,7 +1036,7 @@ class ReactCrop extends Component {
           ref={ref => this.eventTargetRef = ref}
         />
         {this.props.children}
-        <div style={{position: 'absolute', bottom: '3px', right: '3px'}}>
+        <div style={{position: 'absolute', bottom: '3px', right: '3px', ...this.props.buttonContainerStyle}}>
           {this.renderModeButtons()}
         </div>
       </div>
